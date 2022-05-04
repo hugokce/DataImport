@@ -1,1 +1,10 @@
-
+Öncelikle docker imageını Powershell ile çekelim
+docker run --name nifi -p 8443:8443 -d apache/nifi:latest
+ardından 
+https://localhost:8443/nifi/login sayfasını açalım kullancı adı ve şifre isterse  
+/opt/nifi/nifi-current/bin klasörüne gelip alttaki kod çalıştırılır ve 
+minimum 12 haneli şifre tanımlanır sonrasında servisler restart edilir ve login gerçekleştirilir
+ ./nifi.sh set-single-user-credentials "admin" "12HaneliSifre"
+ 
+ 
+ 

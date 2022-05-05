@@ -8,3 +8,8 @@ minimum 12 haneli şifre tanımlanır sonrasında servisler restart edilir ve lo
  
  
  
+Kaynaklar
+
+https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html
+https://nifi.apache.org/docs/nifi-docs/html/developer-guide.html#flowfile
+https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html

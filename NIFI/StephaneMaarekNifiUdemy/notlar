@@ -53,6 +53,7 @@ Some of the processors that belong to this category are GetSQS, PutSNS, PutS3Obj
 
 Kaynaklar
 https://www.tutorialspoint.com/apache_nifi/apache_nifi_processors_categorization.htm
+https://cwiki.apache.org/confluence/display/nifi/example+dataflow+templates
 
 
 

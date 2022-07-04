@@ -1,8 +1,5 @@
 https://www.udemy.com/course/apache-nifi/learn/lecture/6344022#overview
 
-
-
-
 Apache NiFi - Processors Categorization
 
 Data Ingestion Processors
@@ -49,6 +46,272 @@ AWS Processors
 AWS processors are responsible to interaction with Amazon web services system. 
 Some of the processors that belong to this category are GetSQS, PutSNS, PutS3Object, FetchS3Object, etc.
 
+https://www.udemy.com/course/apache-nifi/learn/lecture/6343844?start=0#overview
+2 saat
+Stephane Maarek
+
+https://courses.datacumulus.com/downloads/apache-nifi-hx3/
+Slides paylaştı
+https://stephanemaarek.com/
+
+Java kuralım
+http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+https://www.oracle.com/java/technologies/downloads/#java8
+
+Nifi kurulum
+https://nifi.apache.org/docs/nifi-docs/html/getting-started.html#downloading-and-installing-nifi
+
+nifi 1.1.1 bin.zip indirdi hoca
+macte kuruyor
+cd nifi/bin
+bat windows için sh mac için olan programlardır
+./run-nifi.bat  windows için çalıştırılacak dosyalardır
+./nifi.sh run mac için
+
+localhost:8080/nifi  bende docker 8443 portundan çalışıyor
+https://localhost:8443/nifi/  docker image üzerinden ilerliyoruz
+
+İlk processor oluşturalım
+getFile ekliyoruz configure ediyoruz
+Pick up files from source folder adını verdik Properties geçelim
+Input directory şu /opt/nifi/sm_studies/source
+dockera root ile bağlanmak için https://lists.apache.org/thread/1r2whhcwc9r69cbtk0ypdt0wn5bxn4ko
+docker exec -it --user root nifi /bin/bash 
+/opt/nifi/sm_studies/source  dockerdaki root altında opt/nifi sm_studies ekledim
+Propertiesdeki kalın yazılı propertyler zorunlu alanlardır diğerleri optional
+bu haliyle apply diyelim
+
+Şimdi ikinci processor ekleyelim PutFile
+putFile ekledik şimdi configure diyoruz ad verelim Place FlowFile in target folder dedik
+Properties gelelim directoryye şunu yazalım
+/opt/nifi/sm_studies/target
+
+şimdi sourcetan targeta connection oluşturalım 
+source klasörüne gidip 
+echo "hello world" > hello-world.txt diyelim ki dosya oluşsun
+nifi da bunu okusun
+getfile start ediyoruz 
+
+şimdi putfilea gidip uyarıları kaldıralım relationship kısmında terminateleri işaretleriz
+Putfile start edelim şimdi
+Putfile Properties içinde Conflict Resolution Strategy 
+içinde replace ignore fail var aynı dosyadan sourceta 2 tane var ise üstüne yaz demek için replace seçeriz
+biz de replace seçiyoruz
+terminal sourceta şunu yapalım
+echo "hi again" > hello-world.txt
+böyle olunca targeta replace dediğimiz için
+cat hello-world.txt dersek hi again karşımıza çıkar
+
+eğer dataları atmazsa sorun yetkidense 
+chown nifi:nifi -R /sm_studies/   denir yetkiye takılmıştır
+
+
+Processor Categorization
+
+https://www.tutorialspoint.com/apache_nifi/apache_nifi_processors_categorization.htm
+
+Data Ingestion Processors
+The processors under Data Ingestion category are used to ingest data into the NiFi data flow. These are mainly the starting point of any data flow in apache NiFi. Some of the processors that belong to these categories are GetFile, GetHTTP, GetFTP, GetKAFKA, etc.
+
+Routing and Mediation Processors
+Routing and Mediation processors are used to route the flowfiles to different processors or data flows according to the information in attributes or content of those flowfiles. These processors are also responsible to control the NiFi data flows. Some of the processors that belong to this category are RouteOnAttribute, RouteOnContent, ControlRate, RouteText, etc.
+
+Database Access Processors
+The processors of this Database Access category are capable of selecting or inserting data or executing and preparing other SQL statements from database. These processors mainly use data connection pool controller setting of Apache NiFi. Some of the processors that belong to this category are ExecuteSQL, PutSQL, PutDatabaseRecord, ListDatabaseTables, etc.
+
+Attribute Extraction Processors
+Attribute Extraction Processors are responsible to extract, analyze, change flowfile attributes processing in the NiFi data flow. Some of the processors that belong to this category are UpdateAttribute, EvaluateJSONPath, ExtractText, AttributesToJSON, etc.
+
+System Interaction Processors
+System Interaction processors are used to run processes or commands in any operating system. These processors also run scripts in many languages to interact with a variety of systems. Some of the processors that belong to this category are ExecuteScript, ExecuteProcess, ExecuteGroovyScript, ExecuteStreamCommand, etc.
+
+Data Transformation Processors
+Processors that belong to Data Transformation are capable of altering content of the flowfiles. These can be used to fully replace the data of a flowfile normally used when a user has to send flowfile as an HTTP body to invokeHTTP processor. Some of the processors that belong to this category are ReplaceText, JoltTransformJSON, etc.
+
+Sending Data Processors
+Sending Data Processors are generally the end processor in a data flow. These processors are responsible to store or send data to the destination server. After successful storing or sending the data, these processors DROP the flowfile with success relationship. Some of the processors that belong to this category are PutEmail, PutKafka, PutSFTP, PutFile, PutFTP, etc.
+
+Splitting and Aggregation Processors
+These processors are used to split and merge the content present in a flowfile. Some of the processors that belong to this category are SplitText, SplitJson, SplitXml, MergeContent, SplitContent, etc.
+
+HTTP Processors
+These processors deal with the HTTP and HTTPS calls. Some of the processors that belong to this category are InvokeHTTP, PostHTTP, ListenHTTP, etc.
+
+AWS Processors
+AWS processors are responsible to interaction with Amazon web services system. Some of the processors that belong to this category are GetSQS, PutSNS, PutS3Object, FetchS3Object, etc.
+
+FlowFile Generatora bakalım
+
+GenerateFlowFile ekleyelim
+configure edelim propertiese gidelim
+FileSize 1B , batchsize 5 yaptık
+sonra scheduleda run schedulea gidelim
+10 sn yaptık  5 dosya üret sonra 10sn bekle demektir
+sonra replace text processor ekleyelim
+sonra ikisini bağladık
+çalıştırıp 15-20 dosya ürettirelim sonra durduralım
+replacetext configure edelim
+Propertiese gelelim
+replacement value hello,world olsun
+replacement strategy always replace
+evaluation mode entire text olsun
+relationship terminate seçildi 
+
+Templates
+sağ üstte alt alta çizgi butonu altında görülebilir
+0 görünüyor internetten indirelim
+googlea apache nifi templates diyoruz
+https://cwiki.apache.org/confluence/display/nifi/example+dataflow+templates
+açtık
+CsvToJSON.xml seçtik üzerine tıklayıp download ettik
+Şimdi bu templatei upload edelim
+Solda yer alan operate altında upload template var onu açıp
+xmli çekiyoruz
+şimdi templatesten görebiliriz
+üstte yer alan templates kısmında içeri alalım
+mesela burada generate var sonra replace var a,b,c,d ile 
+değiştiriyor değerleri
+sonra extracttext var orada da +,+,+,+  ile a,b,c,d yazdırıyor
+
+Process group ve template exports:
+Processgroup ekledik CsvtoJsonTemplate dedik ve 
+import ettiğimiz processleri içine attık
+
+Get and Put file adında da bir process group oluşturup 
+diğer flowfileları da içine attık
+
+Getand PutFile process groupu açalım
+soldaki operateten create template diyelim
+GetandPutFile dedik adına
+Templateslerin altına geldi bu şimdi
+
+Bunu paylaşmak istersek Sol üstteki çizgi butondan açıp
+sağda yer alan downloada basmamız gerekiyor
+GetandPutFile.xml olarak download oldu
+
+CsvtoJson incelersek
+ikinci replace textte
+{ "field1" : "${csv.1}", "field2" : "${csv.2}", "field3" : "${csv.3}", "field4" : "${csv.4}" }
+var
+
+https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html
+
+monitoring nifi deyince
+processora gelir status historye açarız grafik incelenir
+sağ üstteki çizgi butondan summary incelenebilir
+yine summary içinde sağ altta system diagnostics var
+
+data provenance and event search:
+processora sağ tıklarsak data provenance görülebilir
+ne işlem yapmış incelenir
+
+processor relationship:
+unmatched olan bir durum varsa onu LogAttributea
+atabiliriz
+Route on Attribute ile farklı durumları için de
+datayı ayırıp dağıtabiliriz
+
+Ek Kısımlar Annexes:
+mlab.com ile 500 mblık mongo db oluşturabiliyoruz
+Json Files to MongoDB eğitimi
+MongoDB deployments Create new diyoruz
+aws singlenode ve sandbox seçtik
+dbname learningnifi dedik
+mongodb client indirelim
+robomongo indirdik
+şimdi mlabta add collection deyip test collection ekledik
+sonra user ekledik admin isimli
+şimdi robomongo bağlantılarını yapalım
+cloudtaki linki alalım
+ds159999.mlab.com girdik port 53689
+authentication --> database learningnifi
+username ve password gireriz
+
+artık db geldi
+learningnifi db altında test collection açıldı
+Şimdi nifiı buraya bağlayalım
+Process Group oluşturalım
+JsontoMongoDB 
+Önce GetFile ekliyoruz
+Propertiese gelip
+InputDirectory girelim
+/opt/nifi/sm_studies/mongodb/source-json-simple
+File filter kısmına [^\.].json dedik tüm jsonları alalım
+Şimdi PutMongo processor ekleyelim
+File filter kısmına [^\.].* hata alırsa json kaldırılabilir
+
+
+dockerda mongodb kurmak için 
+https://www.howtogeek.com/devops/how-to-run-mongodb-in-a-docker-container/
+docker run -d -p 27017:27017 --name example-mongo mongo:latest
+docker exec -it example-mongo mongo
+user ekledim admin admin
+
+PutMongo configure edelim
+URI mongodb://localhost:27017/
+databasename learningnifi
+collectionname test
+
+şimdi source kısmına json ekleyelim
+firstdocument.json 
+{"id":1,"name":"Stephane"}
+
+Apache Nifi to Apache Kafka:
+docker üzerinden gideceğiz
+https://github.com/lensesio/fast-data-dev
+makinesini kullanacağız
+
+http://127.0.0.1:3030/
+
+docker run -it --rm -p 2181:2181 -p 3030:3030 -p 8081:8081 -p 8082:8082 -p 8083:8083 -p 9092:9092 -e ADV_HOST=127.0.0.1 -e RUNTESTS=0 landoop/fast-data-dev
+kafka başlatalım
+
+docker run -it --net=host landoop/fast-data-dev bash
+başlatalım
+
+şimdi nifia geçelim
+GenerateFlowFile ekleyelim
+LogAttribute ekleyelim
+PublishKafka_1_0 ekleyelim
+ConsumeKafka_1_0 ekleyelim
+
+Generatei Publish Kafkaya bağlayalım
+Consumeü LogAttributea bağlayalım
+
+Şimdi Configure edelim
+GenerateFlowFile configure diyelim
+Run Schedule 1 sn olsun
+Properties Filesize 100B Batch size 10
+Unique flowfile True olacak
+
+Şimdi publish Kafka configure edelim
+Scheduling 0 sn kalsın
+Propertiese bakalım
+Kafka brokers 127.0.0.1:9092 oldu
+Topic name nifi-topic olacak
+Delivery Guarantee kısmını Guarantee Replicated Delivery olarak seçtik
+kaydettik
+
+şimdi root@fast-data-dev terminalinde
+kafka-topics --create --topic nifi-topic --zookeeper 127.0.0.1:2181 --partitions 3 --replication-factor 1
+yazdık ve topic oluştu
+şimdi Generate FlowFile çalıştıralım
+şimdi publish kafkayı çalıştıralım
+şimdi consumerı çalıştıralım
+kafka-console-consumer --topic nifi-topic --bootstrap-server 127.0.0.1:9092
+bu çalışınca gelen datayı görüyoruz
+
+LogAttribute start diyelim
+ConsumeKafka topic invalid diyor
+
+Publish datayı kafkaya yollar
+Consumer ise datayı kafkadan alır
+
+ConsumeKAfkayı configure edelim
+KafkaBroker 127.0.0.1:9092 diyelim
+topicname nifi-topic diyoruz
+groupID'ye nifi diyelim ve kaydedelim
+sonra çalıştıralım LogAttribute ve KAfkaconsumerı
 
 
 Kaynaklar

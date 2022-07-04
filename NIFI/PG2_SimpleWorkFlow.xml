@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<template encoding-version="1.3">
+    <description></description>
+    <groupId>8faa49b2-0180-1000-570b-5e0fd5046ada</groupId>
+    <name>PG2_SimpleWorkFlow</name>
+    <snippet>
+        <processGroups>
+            <id>66490617-0340-33b5-0000-000000000000</id>
+            <parentGroupId>fdfc1f9b-ec89-3fa1-0000-000000000000</parentGroupId>
+            <position>
+                <x>0.0</x>
+                <y>0.0</y>
+            </position>
+            <versionedComponentId>66490617-0340-33b5-9383-1ae45d9fc7e6</versionedComponentId>
+            <comments></comments>
+            <contents/>
+            <defaultBackPressureDataSizeThreshold>1 GB</defaultBackPressureDataSizeThreshold>
+            <defaultBackPressureObjectThreshold>10000</defaultBackPressureObjectThreshold>
+            <defaultFlowFileExpiration>0 sec</defaultFlowFileExpiration>
+            <flowfileConcurrency>UNBOUNDED</flowfileConcurrency>
+            <flowfileOutboundPolicy>STREAM_WHEN_AVAILABLE</flowfileOutboundPolicy>
+            <name>PG2_SimpleWorkFlow</name>
+            <variables/>
+        </processGroups>
+    </snippet>
+    <timestamp>07/04/2022 20:07:52 UTC</timestamp>
+</template>

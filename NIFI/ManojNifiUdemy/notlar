@@ -1,0 +1,222 @@
+
+
+What Processors are Available
+The number of Processors that are available increases in nearly each release of NiFi. 
+As a result, we will not attempt to name each of the Processors that are available, 
+but we will highlight some of the most frequently used Processors, categorizing them by their functions.
+
+Data Transformation
+CompressContent: Compress or Decompress Content
+ConvertCharacterSet: Convert the character set used to encode the content from one character set to another
+EncryptContent: Encrypt or Decrypt Content
+ReplaceText: Use Regular Expressions to modify textual Content
+TransformXml: Apply an XSLT transform to XML Content
+JoltTransformJSON: Apply a JOLT specification to transform JSON Content
+
+
+Routing and Mediation
+ControlRate: Throttle the rate at which data can flow through one part of the flow
+DetectDuplicate: Monitor for duplicate FlowFiles, based on some user-defined criteria. Often used in conjunction with HashContent
+DistributeLoad: Load balance or sample data by distributing only a portion of data to each user-defined Relationship
+MonitorActivity: Sends a notification when a user-defined period of time elapses without any data coming through a particular point in the flow. 
+Optionally send a notification when dataflow resumes.
+
+RouteOnAttribute: Route FlowFile based on the attributes that it contains.
+ScanAttribute: Scans the user-defined set of Attributes on a FlowFile, checking to see if any of the Attributes match the terms found in a user-defined dictionary.
+RouteOnContent: Search Content of a FlowFile to see if it matches any user-defined Regular Expression. If so, the FlowFile is routed to the configured Relationship.
+
+ScanContent: Search Content of a FlowFile for terms that are present in a user-defined dictionary and route based on the presence or absence of those terms. 
+The dictionary can consist of either textual entries or binary entries.
+
+ValidateXml: Validation XML Content against an XML Schema; 
+routes FlowFile based on whether or not the Content of the FlowFile is valid according to the user-defined XML Schema.
+
+
+Database Access
+ConvertJSONToSQL: Convert a JSON document into a SQL INSERT or UPDATE command that can then be passed to the PutSQL Processor
+ExecuteSQL: Executes a user-defined SQL SELECT command, writing the results to a FlowFile in Avro format
+PutSQL: Updates a database by executing the SQL DDM statement defined by the FlowFile's content
+SelectHiveQL: Executes a user-defined HiveQL SELECT command against an Apache Hive database, writing the results to a FlowFile in Avro or CSV format
+PutHiveQL: Updates a Hive database by executing the HiveQL DDM statement defined by the FlowFile's content
+
+
+Attribute Extraction
+EvaluateJsonPath: User supplies JSONPath Expressions (Similar to XPath, which is used for XML parsing/extraction), 
+and these Expressions are then evaluated against the JSON Content to either replace the FlowFile Content or extract the value into the user-named Attribute.
+
+EvaluateXPath: User supplies XPath Expressions, and these Expressions are then evaluated against the XML Content to either 
+replace the FlowFile Content or extract the value into the user-named Attribute.
+
+EvaluateXQuery: User supplies an XQuery query, and this query is then evaluated against the XML Content to either replace the 
+FlowFile Content or extract the value into the user-named Attribute.
+
+ExtractText: User supplies one or more Regular Expressions that are then evaluated against the textual content of the FlowFile, 
+and the values that are extracted are then added as user-named Attributes.
+
+HashAttribute: Performs a hashing function against the concatenation of a user-defined list of existing Attributes.
+
+HashContent: Performs a hashing function against the content of a FlowFile and adds the hash value as an Attribute.
+
+IdentifyMimeType: Evaluates the content of a FlowFile in order to determine what type of file the FlowFile encapsulates. 
+This Processor is capable of detecting many different MIME Types, such as images, word processor documents, text, and compression formats just to name a few.
+
+UpdateAttribute: Adds or updates any number of user-defined Attributes to a FlowFile. This is useful for adding statically configured values, 
+as well as deriving Attribute values dynamically by using the Expression Language. This processor also provides an "Advanced User Interface," 
+allowing users to update Attributes conditionally, based on user-supplied rules.
+
+
+System Interaction
+ExecuteProcess: Runs the user-defined Operating System command. The Process's StdOut is redirected such that the content that is written to StdOut 
+becomes the content of the outbound FlowFile. This Processor is a Source Processor - its output is expected to generate a new FlowFile, 
+and the system call is expected to receive no input. In order to provide input to the process, use the ExecuteStreamCommand Processor.
+
+ExecuteStreamCommand: Runs the user-defined Operating System command. The contents of the FlowFile are optionally streamed to the StdIn of the process. 
+The content that is written to StdOut becomes the content of hte outbound FlowFile. This Processor cannot be used a Source Processor - 
+it must be fed incoming FlowFiles in order to perform its work. To perform the same type of functionality with a Source Processor, 
+see the ExecuteProcess Processor.
+
+
+Data Ingestion
+GetFile: Streams the contents of a file from a local disk (or network-attached disk) into NiFi and then deletes the original file. 
+This Processor is expected to move the file from one location to another location and is not to be used for copying the data.
+
+GetFTP: Downloads the contents of a remote file via FTP into NiFi and then deletes the original file. 
+This Processor is expected to move the data from one location to another location and is not to be used for copying the data.
+
+GetSFTP: Downloads the contents of a remote file via SFTP into NiFi and then deletes the original file. 
+This Processor is expected to move the data from one location to another location and is not to be used for copying the data.
+
+GetJMSQueue: Downloads a message from a JMS Queue and creates a FlowFile based on the contents of the JMS message. 
+The JMS Properties are optionally copied over as Attributes, as well.
+
+GetJMSTopic: Downloads a message from a JMS Topic and creates a FlowFile based on the contents of the JMS message. 
+The JMS Properties are optionally copied over as Attributes, as well. This Processor supports both durable and non-durable subscriptions.
+
+GetHTTP: Downloads the contents of a remote HTTP- or HTTPS-based URL into NiFi. 
+The Processor will remember the ETag and Last-Modified Date in order to ensure that the data is not continually ingested.
+
+ListenHTTP: Starts an HTTP (or HTTPS) Server and listens for incoming connections. 
+For any incoming POST request, the contents of the request are written out as a FlowFile, and a 200 response is returned.
+
+ListenUDP: Listens for incoming UDP packets and creates a FlowFile per packet or per bundle of packets (depending on configuration) 
+and emits the FlowFile to the 'success' relationship.
+
+GetHDFS: Monitors a user-specified directory in HDFS. Whenever a new file enters HDFS, it is copied into NiFi and deleted from HDFS. 
+This Processor is expected to move the file from one location to another location and is not to be used for copying the data. 
+This Processor is also expected to be run On Primary Node only, if run within a cluster. In order to copy the data from HDFS and leave it in-tact, 
+or to stream the data from multiple nodes in the cluster, see the ListHDFS Processor.
+
+ListHDFS / FetchHDFS: ListHDFS monitors a user-specified directory in HDFS and emits a FlowFile containing the filename for each file that it encounters. 
+It then persists this state across the entire NiFi cluster by way of a Distributed Cache. These FlowFiles can then be fanned out across the cluster 
+and sent to the FetchHDFS Processor, which is responsible for fetching the actual content of those files and emitting FlowFiles that contain the content 
+fetched from HDFS.
+
+FetchS3Object: Fetches the contents of an object from the Amazon Web Services (AWS) Simple Storage Service (S3). 
+The outbound FlowFile contains the contents received from S3.
+
+GetKafka: Fetches messages from Apache Kafka, specifically for 0.8.x versions. 
+The messages can be emitted as a FlowFile per message or can be batched together using a user-specified delimiter.
+
+GetMongo: Executes a user-specified query against MongoDB and writes the contents to a new FlowFile.
+
+GetTwitter: Allows Users to register a filter to listen to the Twitter "garden hose" or Enterprise endpoint, creating a FlowFile for each tweet that is received.
+
+
+Data Egress / Sending Data
+PutEmail: Sends an E-mail to the configured recipients. The content of the FlowFile is optionally sent as an attachment.
+
+PutFile: Writes the contents of a FlowFile to a directory on the local (or network attached) file system.
+
+PutFTP: Copies the contents of a FlowFile to a remote FTP Server.
+
+PutSFTP: Copies the contents of a FlowFile to a remote SFTP Server.
+
+PutJMS: Sends the contents of a FlowFile as a JMS message to a JMS broker, optionally adding JMS Properties based on Attributes.
+
+PutSQL: Executes the contents of a FlowFile as a SQL DDL Statement (INSERT, UPDATE, or DELETE). 
+The contents of the FlowFile must be a valid SQL statement. Attributes can be used as parameters so that the contents of the FlowFile 
+can be parameterized SQL statements in order to avoid SQL injection attacks.
+
+PutKafka: Sends the contents of a FlowFile as a message to Apache Kafka, specifically for 0.8.x versions. 
+The FlowFile can be sent as a single message or a delimiter, such as a new-line can be specified, in order to send many messages for a single FlowFile.
+
+PutMongo: Sends the contents of a FlowFile to Mongo as an INSERT or an UPDATE.
+
+
+Splitting and Aggregation
+SplitText: SplitText takes in a single FlowFile whose contents are textual and splits it into 1 or more FlowFiles based on the configured number of lines. 
+For example, the Processor can be configured to split a FlowFile into many FlowFiles, each of which is only 1 line.
+
+SplitJson: Allows the user to split a JSON object that is comprised of an array or many child objects into a FlowFile per JSON element.
+
+SplitXml: Allows the user to split an XML message into many FlowFiles, each containing a segment of the original. 
+This is generally used when several XML elements have been joined together with a "wrapper" element. 
+This Processor then allows those elements to be split out into individual XML elements.
+
+UnpackContent: Unpacks different types of archive formats, such as ZIP and TAR. Each file within the archive is then transferred as a single FlowFile.
+
+MergeContent: This Processor is responsible for merging many FlowFiles into a single FlowFile. 
+The FlowFiles can be merged by concatenating their content together along with optional header, footer, and demarcator, or by specifying an archive format, 
+such as ZIP or TAR. FlowFiles can be binned together based on a common attribute, or can be "defragmented" 
+if they were split apart by some other Splitting process. The minimum and maximum size of each bin is user-specified, based on number of elements or 
+total size of FlowFiles' contents, and an optional Timeout can be assigned as well so that FlowFiles will only wait for their bin to become full 
+for a certain amount of time.
+
+SegmentContent: Segments a FlowFile into potentially many smaller FlowFiles based on some configured data size. 
+The splitting is not performed against any sort of demarcator but rather just based on byte offsets. 
+This is used before transmitting FlowFiles in order to provide lower latency by sending many different pieces in parallel. 
+On the other side, these FlowFiles can then be reassembled by the MergeContent processor using the Defragment mode.
+
+SplitContent: Splits a single FlowFile into potentially many FlowFiles, similarly to SegmentContent. 
+However, with SplitContent, the splitting is not performed on arbitrary byte boundaries but rather a byte sequence is specified on which to split the content.
+
+
+HTTP
+GetHTTP: Downloads the contents of a remote HTTP- or HTTPS-based URL into NiFi. 
+The Processor will remember the ETag and Last-Modified Date in order to ensure that the data is not continually ingested.
+
+ListenHTTP: Starts an HTTP (or HTTPS) Server and listens for incoming connections. 
+For any incoming POST request, the contents of the request are written out as a FlowFile, and a 200 response is returned.
+
+InvokeHTTP: Performs an HTTP Request that is configured by the user. 
+This Processor is much more versatile than the GetHTTP and PostHTTP but requires a bit more configuration. 
+This Processor cannot be used as a Source Processor and is required to have incoming FlowFiles in order to be triggered to perform its task.
+
+PostHTTP: Performs an HTTP POST request, sending the contents of the FlowFile as the body of the message. 
+This is often used in conjunction with ListenHTTP in order to transfer data between two different instances of NiFi in cases where 
+Site-to-Site cannot be used (for instance, when the nodes cannot access each other directly and are able to communicate through an HTTP proxy). 
+Note: HTTP is available as a site-to-site transport protocol in addition to the existing RAW socket transport. 
+It also supports HTTP Proxy. Using HTTP Site-to-Site is recommended since it's more scalable, 
+and can provide bi-directional data transfer using input/output ports with better user authentication and authorization.
+
+HandleHttpRequest / HandleHttpResponse: The HandleHttpRequest Processor is a Source Processor that starts an embedded HTTP(S) server similarly to ListenHTTP. 
+However, it does not send a response to the client. 
+Instead, the FlowFile is sent out with the body of the HTTP request as its contents and attributes for all of the typical Servlet parameters, 
+headers, etc. as Attributes. The HandleHttpResponse then is able to send a response back to the client after the FlowFile has finished being processed. 
+These Processors are always expected to be used in conjunction with one another and allow the user to visually create a Web Service within NiFi. 
+This is particularly useful for adding a front-end to a non-web- based protocol or to add a simple web service around some functionality 
+that is already performed by NiFi, such as data format conversion.
+
+
+Amazon Web Services
+FetchS3Object: Fetches the content of an object stored in Amazon Simple Storage Service (S3). 
+The content that is retrieved from S3 is then written to the content of the FlowFile.
+
+PutS3Object: Writes the contents of a FlowFile to an Amazon S3 object using the configured credentials, key, and bucket name.
+
+PutSNS: Sends the contents of a FlowFile as a notification to the Amazon Simple Notification Service (SNS).
+
+GetSQS: Pulls a message from the Amazon Simple Queuing Service (SQS) and writes the contents of the message to the content of the FlowFile.
+
+PutSQS: Sends the contents of a FlowFile as a message to the Amazon Simple Queuing Service (SQS).
+
+DeleteSQS: Deletes a message from the Amazon Simple Queuing Service (SQS). 
+This can be used in conjunction with the GetSQS in order to receive a message from SQS, perform some processing on it, 
+and then delete the object from the queue only after it has successfully completed processing.
+
+
+Kaynaklar
+
+https://www.udemy.com/course/apache-nifi-the-beginner-guide/learn/lecture/13777596#overview
+
+https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.2.0/getting-started-with-apache-nifi/content/what-processors-are-available.html

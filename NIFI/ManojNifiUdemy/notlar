@@ -217,8 +217,488 @@ This can be used in conjunction with the GetSQS in order to receive a message fr
 and then delete the object from the queue only after it has successfully completed processing.
 
 
+https://www.udemy.com/course/apache-nifi-the-beginner-guide/learn/lecture/13777312?start=15#overview
+
+docker makineden çalışıyoruz
+localhost:8443/nifi
+
+1.14 öncesi http://localhost:8080/nifi ile erişilebiliyor
+sonrasında ise https://127.0.0.1:8443/nifi ile erişilebiliyor
+
+This will also prompt you to enter the Username and Password. 
+You can get the Username and Password from the nifi-app.log file
+inside the /logs folder.
+
+mac için tar.gz indirildi
+windows için zip indirildi
+
+Processor type
+https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.2.0/getting-started-with-apache-nifi/content/what-processors-are-available.html
+
+GenerateFlowFile ile LogAttribute ekledik
+Generate için runschedule 10sn yaptık
+4 file oluştu sonra concurrent taskı 5 yaptık tekrar çalıştırdık
+5 tane daha flowfile generate edildi concurrent sayesinde
+
+Propertiesten 1B yapıp unique true dedik sonra run schedule 0 sn deyince 10K file oluştu
+
+Bu arada connectiondaki queue 10000 olarak bekledi ilerlemedi Bu connectionın propertieslerine baktığımızda 
+backpressure Threshold değeri 10000 olarak verilmiş ayrıca size threshold da var o da 1GB
+Bu 10000 değerinden ötürü bizim flowda data üretimi durdu ve beklemeye aldı
+
+Mesela generate flowfile propertiesde file size olarak 250 MB verip tekrar başlatığımızda 4 tane dosya oluşturdu
+1GB boyutuna ulaştığı için durdu yine
+
+Şimdi 5 snde 1B dosya oluşturan generate ekleyelim
+ReplaceText processor ekleyelim Replacetextin propertieslerine bakalım
+ReplacementStrategy kısmında regexreplace bıraktık onun dışında append var pre var önüne arkasına doğru değişiklik için literal ve always de var.
+search value property var aradığı değer altında da
+replacement value var değiştirilmek üzere.
+
+şimdi replacement strategy always seçelim replacement value a,b,c,d diyelim evaluation modeda entire text olsun
+REplaceTexte de LogAttribute ekledik
+Şimdi generate çalıştıralım 
+şimdi replace çalıştırdığımız zaman a,b,c,d geldiğini görürüz
+şimdi extracttext processor ekleyelim properties açalım
+ve yeni property ekleyelim adına csv dedik içine de (.+),(.+),(.+),(.+)  ekledik
+şimdi replacetexti extracttexte bağladık Extract texti de LogAttribute bağlayalım ama matched olanları seçelim
+Ayrıca extract text uyarı veriyor unmatched olanlar için terminate seçeneğini işaretleyelim
+
+
+
+Expression Language kısmı
+şimdi replacetext processorı copy paste edelim
+REplacetextteki replacement value için şu ifadeyi yazalım
+
+{
+"field1":"${csv.1}",
+"field2":"${csv.2}",
+"field3":"${csv.3}",
+"field4":"${csv.4}"
+}
+
+
+Şimdi aynı flowda PutFile processor ekleyelim replacetextten sonra
+PutFileı da LogAttributea bağlayalım
+
+Directory olarak da /opt/nifi/manoj_studies/outputverelim
+
+687ecf4a-496c-4d60-8ee0-cb73c5618fbf  d7e80b9d-9175-488b-ad09-b5918deaa89f
+adında dosyaları yazdı
+
+Şimdi update attribute processor ekleyelim
+Şimdi update attribute içinde properties + ile yeni ekleyelim
+filename diyelim ve 
+${filename}-${now():toNumber():format('dd-MM-yy')}.json
+özelliğine yazalım
+Bu update attributeu replaceten sonra ekleyelim onu da putFilea 
+ekleyelim
+
+-rw-r--r-- 1 nifi nifi 59 Jul  6 15:40 0b8c73b6-3fed-44bc-ab3c-43fdbc8082a9-06-07-22.json
+adlı dosya geldi
+
+ProcessGroup, Inport Port Output Port:
+Bir processgrouptan diğerine data iletmek gerekiyorsa
+Şimdi ProcessGroup içine bir processgroup ekleyelim
+WriteJsontoFileSystem diyelim adına
+Replace textten sonraki 3 processoru bu processgroup içine taşıyalım
+Şimdi move to parent group diyip ikisini aynı seviyeye taşıyalım
+Şimdi data gönderen  ilk process groupa output port ekleriz
+replace texti buna bağlarız success seçeneği işaretleriz
+data alan process grupa da input port ekleriz updateattributea bağlarız
+şimdi iki processgrubu bağlayalım
+
+Working with Templates:
+Create ve Upload template anlatımı var.
+
+Funnel 
+2 veya daha fazla Generate Flow oluştursak ve bunları birleştirmek
+istesek Funnel ile ikisini bir akışa bağlayabiliriz
+Sonra da LogAttributea bağlayabiliriz
+
+Controller Service:
+GenerateFlow ekleyelim 10 sec schedule verelim
+Properties olarak da şunu verelim
+{
+"title":"mr",
+"first":"John ${random():mod(10):plus(1)}",
+"last":"Doe ${random():mod(10):plus(1)}",
+"email":"johndoe ${random():mod(10):plus(1)}@mail.com",
+"created_on":"${now():toNumber()}"
+}
+
+CustomTexte ekledikten sonra kaydedelim
+Sonra LogAttribute ekleyelim
+Şimdi çalıştıralım
+List Queue diyelim inceleyelim
+PostgreSQLe yazmak için PutSQL processor ekleyelim
+Şimdi json dosyasını sqle çevirmek için
+ConvertJsontoSQL processor ekleyelim
+Generate Attributeu bu JsontoSQL processora bağlayalım
+Properties açalım 
+3 özellik var doldurmamız gereken
+Table name tbl_users diyelim
+Sonra Statement type için insert diyelim çünkü insert işlemi
+yaptıracağız
+Son olarak JDBC connection pool özelliği
+Bunu yapmak için Create new service dememiz lazım
+DBPCCOnnectionPool seçip adına da 
+DBCPConnectionPool_PostgreSQL dedik
+Şimdi işlem daha bitmedi yanında çıkan sağ oka basıp ilerleyelim
+Çıkan ekranda sağda yıldız şeklindeki configure butonuna basalım
+Database Connection URL kısmına
+jdbc:postgresql://127.0.0.1:5432/postgres diyelim sonra
+database driver class name içine org.postgresql.Driver diyelim
+sonra Database Driver Location kısmına nifidaki drivers adresini
+verelim
+/Users/manojgt/tools/nifi-1.8.0/drivers/postgresql-42.2.5.jar deriz
+Sonra Database USers gireriz postgres deriz
+ şimdi apply deriz
+Ardından configure yanında çıkan enable butonuna basıp aktif hale
+getiririz çıkmazsa bu buton configure edilen ayarlarda sorun var 
+demektir
+
+Sonra ConvertJson processoru PutSQL processora bağlarız
+burada 3 ilişki tipi var failure original ve sql
+sadece sql seçip devam apply ettik
+
+LogAttribute ekleyip ConvertJsontoSQLi bu LogAttributea bağladık
+original relationship seçtik
+Convertto SQLe gelip relationshipte failure kısmını terminate
+ettik
+
+Şimdi çalıştıralım  ve name sql yazan connectiona bakalım
+görüldüğü üzere sql scripti oluşturuldu
+Şimdi PutSQLe gelip onun ayarlarını yapalım
+JDBC Connection Pool istiyor az önce oluşturduğumuz PostgreSQL
+controller service seçelim ve kaydedelim
+Onu da boşta kalan LogAttributea bağlayalım success seçelim
+PutSQLden çıkan oku tekrar üstüne getirip kendine bağlatalım
+ve terminate kısmını retry seçelim
+
+Relationship kısmında da failure kısmını terminate edelim
+Flowu çalıştırınca postgresqle datanın yazıldığını görebiliriz
+
+wget https://jdbc.postgresql.org/download/postgresql-42.4.0.jar
+ile manoj_studies altına postgre jar dosyasını aldım
+/opt/nifi/nifi-current/lib/postgresql-42.4.0.jar
+bir de lib altına attım
+
+
+Variable Registry:
+Şimdi sistemden sisteme değişiklikleri bir yerden yönetmek için
+db.properties adında dosya oluşturduk bunu ./conf altına atıyoruz
+postgres.uri=jdbc:postgresql://127.0.0.1:5432/postgres
+postgres.driverclassname=org.postgresql.Driver
+postgres.driverpath=/Users/manojgt/tools/nifi-1.8.0/drivers/postgresql-42.2.5.jar
+postgres.username=postgres
+postgres.password karşısına şifre girilir
+
+nifi.properties dosyası içine de 
+nifi.variables.registry.properties=./conf/db.properties
+yazılır ki az önce oluşturduğumuz variableları okuyabilsin
+virgülle birden fazla dosya gösterebiliriz
+ekledikten sonra nifi servisleri restart edilmelidir
+./nifi.sh stop
+./nifi.sh start
+ya da ./nifi.sh restart
+
+bu aşamadan sonra Database connection URI kısmına
+${postgres.uri}  denilir
+${postgres.driverclassname}
+${postgres.driverpath}
+${postgres.username}
+${postgres.password} sırasıyla alt alta girilir
+
+Diğer bir variable ekleme yöntemi kanvasta sağ tıklayıp
+Variables demektir
+Process grup içinde oluşturulan variables dışında oluşturanı ezer
+buna dikkat etmek gerekir.
+
+Flowfile önceliklendirme
+MEsela Update Attribute içine propertiesde + ile priority ekleyip
+öncelik verebiliriz 1 birine 9 birine gibi değer atanabilir
+1 olana daha önemli öncelikli data gelirse
+9 olana daha az önemli data gelirse diye önceliklendirebiliriz
+
+Bunu önceliklendirmeyi de şöyle yapıyoruz
+update attributetan sonra bağladığımız yer ile olan 
+connection kısmında configure dersek sağda çıkan sürükle
+bırak özellikli yerden yapabiliriz
+FirstinFirstOut, NewestFlowFileFirst, OldestFlowFileFirst
+ve PriorityAttribute var
+PriorityAttribute ile verdiğimiz priority attributetaki sıralamaya
+göre alacaktır
+
+FlowFile expiration yapmak istersek
+UpdateAttribute settingse gelince solda FlowFile Expiration
+var burada süre verebiliyoruz örnek olarak 5 sn verdik
+Yine connectionda da verebiliyoruz 5sn sonra data alınmadıysa
+kayboluyor
+
+Data Provenance ile kaynakları görebiliriz tanımlamaları
+inceleyebiliriz detay özellikleri variablelar nifi.properties
+içinde var
+
+Sağ üst köşedeki çizgi buton içinde bulletion board ile 
+karşılaşılan hataları görebiliriz
+
+Reporting Task eklemek için sağ üstteki çizgi butondan
+Controller Services tıklanır reporting task kısmına gelinir
+ve + ile processor eklemesi yapılır burada monitor memory ve
+monitor diskusage ekleyelim.
+
+Memory özelliklerine gelip Memory pool old seçelim
+threshold için de 1% diyelim
+Diskusage için de threshold 1% diyelim
+Directory location için de /Users/manojgt dedi ben de
+/opt/nifi dedim
+Bunları apply dedikten sonra çalıştırıp takip edebiliriz
+Sağ üst köşedeki çizgi butonun altında hareketlerden
+Bu 1% değerini GB olarak da verebiliriz
+
+Remote olarak kontrol etmek istersek
+nifi.propertieste web properties ayarlarını girelim
+nifi.web.http.port=8081 ilki 8080 idi şimdi 8443 o halde
+8444 verilebilir müsaitse port.
+Yine nifi.properties içinde Site to Site Properties var
+biz şimdi localden çalıştığımız için aynı adresi verelim
+nifi.remote.input.host=127.0.0.1
+nifi.remote.input.socket.port=8082 dedik 8445 olabilir 
+
+Şimdi yine controller servicee gelip reporting task kısmından
+SitetoSiteBulletingReportingTask ekleyelim
+
+İstedikleri Destionation URL ve 
+Input Port Name
+Destionation URL kısmına http://${hostname(true)}:8081/nifi
+Input Port Name kısmına da bulletins diyelim
+
+Ayrıca SitetoSiteMetricsReportingTask ekleyelim
+Destination URL kısmına http://${hostname(true)}:8081/nifi
+input port name kısmına da metrics dedik
+
+Registry for Version Control
+Nifi Registry kurulum internette arattık
+https://nifi.apache.org/registry.html
+adresinden 1.16.3 indirelim
+manoj_studies altına indirdim
+
+wget https://dlcdn.apache.org/nifi/1.16.3/nifi-registry-1.16.3-bin.tar.gz
+
+tar xzvf nifi-registry-1.16.3-bin.tar.gz ile açtık
+
+şimdi /opt/nifi/manoj_studies/nifi-registry-1.16.3/bin altında yer alan 
+./nifi-registry.sh start deriz
+localhost:18080/nifi-registry
+localhost:18433/nifi-registry
+
+Şimdi nifi-registry configure edelim
+https://nifi.apache.org/docs/nifi-registry-docs/html/getting-started.html
+Controller Servicee gelip Registry Clients açılır + ile ekleme yapılır
+Adına Local Registry dedik
+URL http://localhost:18080 dedik
+ARtık canvasa gelip sağ tıklayınca Version altında Start
+Version control diyebiliriz
+
+Bucket mantıksal olarak data flowları ayırmak demektir
+1 bucket birden fazla flow ile ilişkili olabilir
+bucketı bir klasör gibi düşünebiliriz ilişkili dosyaları içinde
+tutuyor.
+
+Bucket eklemek için localhost 18080e gidilir ve New Bucket denilir
+First Bucket deyip kaydettik
+Şimdi canvasa gelip First Bucket gösterelim
+FlowName verelim First Flow dedik ve kaydettik
+
+Process Grubun sol üst köşede yeşil check işareti var 
+versiyon kontrolü yapılıyor
+Şimdi o process group içine yeni processorlar eklersek
+yeşil checkin değiştiğini görürüz gri yıldıza döner.
+sağ tıklayıp versiona baktığımızda 
+commit local change, show local change revert local change
+görürüz
+Commit dersek bu değişiklik işlemiş olur
+
+Multiple Nifi instance ile çalışalım
+nifi dosyasının kopyasını alıp nifi.shleri çalıştıralım
+böylece 2 instance farklı portlardan çalışır
+8080 ve 8081
+
+Registry ekledikten sonra Process Group eklerken
+Import butonu geldi herhangi bir versiyondaki 
+process groupu eklemek için.
+
+İki ayrı instancetaki değişiklikleri yansıtmak için
+sol üst köşede kırmızı uyarı çıkar sonra versiyonları yansıt
+dersek ikisi de aynı versiyona gelir
+
+bir değişiklik yapmak için önce güncel versiyonu çekmek lazım
+sonrasında değişikliği yapmamız gerekiyor
+
+Git ile uyuma bakalım
+Önce githubta repository oluşturmak gerekiyor
+nifi-flows diyelim
+Sonra githuba remote bağlanmak için access key alıyoruz
+Settings e gidip develop settings açıyoruz
+Personel access token alıyoruz
+adına nifi-registry diyoruz
+repo seçilir ve generate token denilir
+
+Sonra repository git clone ile çekilir
+içinde providers.xml dosyası açılır
+FlowPersistenceProvide kısmı açılır
+Flow to Storage Directory girilir manojgt/project/nifi-flows
+Remote to Push için origin girdik
+Remote Access USer için learnwithmanoj 
+remote access password için de access token girilir
+sonra nifi-registry restart edilmelidir
+
+şimdi process groupa versiyon ekleyelim
+hemen githuba yansıdı yaptığımız değişiklik
+
+
+Cluster management için zookeeper kullanıyoruz
+Zookeeper clusterdaki 1 makineyi cluster coordinator olarak 
+seçer ve diğer nodelardan status infonun bu nodea gitmesini sağlar
+yeni eklenen node bu cluster coordinatora önce eklenmeli
+
+Cluster Nifi limitlerine bakalım
+datalar küçük parçalara ayrılır ancak her node bu dataları tutar
+replikasını saklamaz diğer nodelar da bu datayı saklamaz
+herkes aldığı datayı saklar
+
+node çökse tekrar gelince devam eder içindeki işlemler
+diğer nodelara gitmez networkten de düşse networke tekrar
+bağlanınca işlemine devam eder
+
+embedded zookeeper ile cluster config
+digital oceanda 3 makine oluşturduk
+etcde hosts dosyasına gelip iplerini giriyoruz
+149, 150, 152 ipli 3 makine
+sonra conf içinde zookeeper.properties filea bakalım
+server.1=nifi-node-1:2888:3888
+server.2=nifi-node-2:2888:3888
+server.3=nifi-node-3:2888:3888
+ekleriz
+
+zookeeperın portu 2181dir
+
+nifi altına state zookeeper klasörü oluşturalım
+/root/nifi-1.8.0/state/zookeeper ekleyelim
+içine myId adlı file oluşturalım içine 1 diyelim
+
+şimdi nifi.properties açalım
+nifi.state.management.embedded.zookeeper.start=true diyelim
+sonra nifi.zookeeper.connect.string= nifi-node-1:2181,nifi-node-2:2181,nifi-node-3:2181
+diyelim
+nifi.cluster.is.node=true diyelim
+nifi.cluster.node.address=nifi-node-1 diyelim
+nifi.cluster.node.protocol.port=8081 dedik
+
+sonra 
+nifi.web.http.host=nifi-node-1 diyelim
+ayrıca site to site altındaki
+nifi.remote.input.host=nifi-node-1 diyelim
+nifi.remote.input.socket.port=8082 diyelim
+aynı değişiklikleri diğer nodelara da yapalım
+diğer nodelara da myId eklenir 2 ve 3 denir
+etc/hosts dosyalarına eklemeler yapılmalı
+149 150 152 node1,2,3 eklenir
+nifi.properties altında
+nifi.cluster.flow.election.max.candidates=2 dedik
+şimdi tüm nodeları başlatalım
+./bin/nifi.sh start && tail.f ./logs/nifi-app.log
+
+nifi-node-1:8080/nifi dersek sayfa açılır
+Bu işlemlerin açıklamaları ek dosyada
+
+Bir de External Zookeeper ile configure edelim clusterı
+Embedded Zookeeper olunca Nifi ile zookeeper aynı makinede
+olur node göçünce ikisini de kaybediyoruz
+Ama external olunca zookeeper ile nifi ayrı makinelerde 
+tutuyoruz
+bir önceki ayarları yapıyoruz farklı olan şunlar
+nifi.state.management.embedded.zookeeper.start=false olacak
+tüm nodelarda
+zookeeper download edelim root altında bir klasör oluşturalım
+zooeeper-3.4.14 altında conf yer alır confta da zoo_sample.cfg
+dosyası vardır adını zoo.cfg yaptık
+
+tmp/zookeeper açtık bunun içine myID dosyası ekledik 3 dedik
+sonra zoo.cfg dosyasına şu satırları gireriz
+
+server.1=nifi-node-1:2888:3888
+server.2=nifi-node-2:2888:3888
+server.3=nifi-node-3:2888:3888
+
+./bin/zkServer.sh start komutunu 3 nodeda da gireriz.
+
+şimdi nifi instanceları başlatalım
+nifi-node-1:8080/nifi sayfa açılır
+
+sol üst köşede 3/3 görürüz 3 node olduğunu anlarız
+
+Custom Processor 
+
+Development Environment Setup (Optional)
+Download and Setup Java Developer ENVIRONMENT:
+
+Installing the JDK Software and Setting JAVA_HOME - 
+https://docs.oracle.com/cd/E19182-01/820-7851/inst_cli_jdk_javahome_t/
+
+Extra Reference:
+https://www.mkyong.com/java/how-to-set-java_home-on-windows-10/
+https://www.mkyong.com/java/how-to-install-java-jdk-on-ubuntu-linux/
+https://www.mkyong.com/java/how-to-set-java_home-environment-variable-on-mac-os-x/
+
+Download and Setup Maven:
+https://www.mkyong.com/maven/how-to-install-maven-in-windows/
+https://www.mkyong.com/maven/how-to-install-maven-in-ubuntu/
+https://www.mkyong.com/maven/install-maven-on-mac-osx/
+
+Download Eclipse:
+https://www.eclipse.org/downloads/
+
+Maven ile custom processor yazalım
+
+terminal açtık
+mvn archetype:generate dedik
+gelen ekrana nifi dedik 2 satır döndü
+custom nifi processor ve custom nifi service
+1 dedik processor yazacağız çünkü
+şimdi nifi versiyon soruyor 30 girdik
+groupId soruyor com.nifi.custom dedik
+artifact nifi-custom-processor
+version boş, artifactBaseName custom dedik
+package kısmına com.nifi.custom.processors dedik
+şimdi artık maven projesini import edelim
+eclipse açalım soldan import project diyelim
+nifi-custom-processors dedik
+src/main/java altındaki MyProcessor.java adını değiştirelim
+rename diyelim Passthrough diyelim
+içindeki değeri de değiştirdik
+com.nifi.custom.processors.Passthrough dedik
+şimdi bu dosyanın içini açıp kodlarına bakalım
+en alttaki kısımdan yazalım
+session.transfer(transfer,MY_RELATIONSHIP);
+şimdi kaydedip Run As maven install diyelim
+Build success dedi nifi-custom-nar-1.0-SNAPSHOT.nar oluştu
+Bu dosyayı kopyalayıp nifi altındaki lib klasörüne yapıştırırız
+
+Şimdi Add processor deyip Passthrough gelir
+
+
+
+
+
+
 Kaynaklar
 
+https://www.nifi.rocks/documents/nifi-expression-language-cheat-sheet.pdf
 https://www.udemy.com/course/apache-nifi-the-beginner-guide/learn/lecture/13777596#overview
-
 https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.2.0/getting-started-with-apache-nifi/content/what-processors-are-available.html
+https://github.com/learnwithmanoj/apache-nifi-templates
+https://pcjayasinghe.medium.com/apache-nifi-combine-mysql-and-postgresql-records-over-rest-api-6c69afc7bf82
+https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html
+https://www.projectpro.io/recipes/write-data-postgres-nifi

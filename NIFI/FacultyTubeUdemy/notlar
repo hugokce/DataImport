@@ -1,5 +1,107 @@
-https://www.udemy.com/course/a-to-z-of-apache-nifi-beginner-to-admin-master-the-data-flow/learn/lecture/22368176#overview
+https://www.udemy.com/course/a-to-z-of-apache-nifi-beginner-to-admin-master-the-data-flow/learn/lecture/22354364?start=0#overview
 
-2,5 saat eğitim
+2,5 saatlik eğitim
 
+nifi container ile çalışıyorum
+download jre 64 bit windows 10
+jre8 indirdi
+
+JAVA_HOME=c altındaki adresi girdi jre1.8_0_261
+apache nifi indirildi
+1.11.4 bin.tar.gz indirildi
+
+nifi.properties dosyasına gidelim
+web properties altındaki 
+nifi.web.http.port=9090 dedi
+
+run-nifi bat dosyasını yönetici olarak çalıştırdık
+googleda aratalım
+how to get free data in json format
+https://catalog.data.gov/dataset?res_format=JSON 
+adresine gittik
+restaurants datasını alıyoruz
+
+datayı bulmak için şunu girdim
+https://catalog.data.gov/dataset?tags=restaurant
+https://catalog.data.gov/dataset/restaurants-1fbac
+https://data.baltimorecity.gov/datasets/53319332a909407e8ee52ae8ea79663d/explore?location=-0.000000%2C0.000000%2C0.87
+
+CSV indiremeyince
+https://data.sfgov.org/api/views/pyih-qa8i/rows.csv?accessType=DOWNLOAD
+adresindeki datayı alıyorum
+
+şimdi invoke HTTP processor alalım
+https://data.baltimorecity.gov/api/views/k5ry-ef3g/rows.csv?accessType=DOWNLOAD
+Remote URL kısmına girdik
+ben şimdi restaurant score datasını ekliyorum çünkü bu üstteki
+api linki çalışmıyor o link de
+https://data.sfgov.org/api/views/pyih-qa8i/rows.csv?accessType=DOWNLOAD
+ 
+ docker exec -it --user root nifi /bin/bash
+mkdir facultytube dedim
+/opt/nifi/facultytube/outputfiles açtım
+PutFile ekledim
+/opt/nifi/facultytube/outputfiles directory olarak verdim
+
+Önce invokeu putfilea bağlayalım
+çalıştırınca klasörün altında dosyalar oluştu
+şimdi update attribute ekleyelim
+dosyaların adları okunur değil o yüzden update edelim
+şimdi invoke ile put arasındaki bağlantıyı kaldıralım
+şimdi invokeu updateattributea bağlayalım
+updatei de putfilea bağlayalım
+filename adında property ekleyelim içine şunu yazalım
+${filename:prepend(${now():format('yyyy-MM-dd-HH-mm-ss')})}
+şimdi flowları tekrar başlatalım
+
+baktığımız zaman dosya adlarının başına yıl ay gün saat dakika saniye geldi
+
+Integration with Relation DB
+mysql workbench kuruluyor
+windows
+https://dev.mysql.com/downloads/file/?id=510444
+https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community-8.0.29-winx64.msi
+
+linux için de
+https://dev.mysql.com/downloads/file/?id=510445
+https://dev.mysql.com/get/Downloads/MySQLGUITools/mysql-workbench-community_8.0.29-1ubuntu21.10_amd64.deb
+
+create scriptleri için ekran görüntüsü alındı EA_1
+show databases;
+use office;
+show tables;
+create table employee(id int, name varchar(20));
+insert into employee(id,name) value (1,'John');
+insert into employee(id,name) value (2,'Jack');
+insert into employee(id,name) value (3,'Peter');
+insert into employee(id,name) value (4,'Alex');
+
+Nifida QueryDAtabaseTableREcord processor ekledik
+karşısına putfile ekledik
+Query processorda DBCPConnectionPool ekledik adına MYSQLConnectingService dedik
+DatabaseTYpe MySQL
+table name employee dedik
+MYSQLConnectingService  ayarlarını yapalım
+Database Connection URL için jdbc:mysql://localhost:3306/office  office bizim schema adımızdır
+Database Driver Class Name için com.mysql.jdbc.Driver deriz
+Database Driver Location(s) için de /opt/nifi/nifi-current/lib/mysql-connector.java.8.0.21.jar verilir
+driver için de mysqlin kurulduğu yerdeki connector dosyası içindeki
+mysql-connector.java.8.0.21 adresi verilir
+ya da  kendi oluşturduğumuz klasöre bu java connector
+yapıştırılır ve bu adres gösterilir
+
+https://dev.mysql.com/downloads/connector/j/
+https://dev.mysql.com/get/Downloads/Connector-Net/mysql-connector-net-8.0.29.msi
+https://dev.mysql.com/get/Downloads/Connector-ODBC/8.0/mysql-connector-odbc_8.0.29-1ubuntu21.10_amd64.deb
+https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java_8.0.29-1ubuntu21.10_all.deb
+Database USer için root dedik
+pss için de root dedik
+Record Writer için de AvroRecordSetWriter seçelim
+enable edelim sonra
+kaydettik ve enable ettik
+putfile ekleyelim
+directory olarak /opt/nifi/facultytube/outputfiles verdim yine
+
+Maximum-value Columns kolununa id dersek bu kolona yeni bir değer
+gelince bu datayı da alır
 

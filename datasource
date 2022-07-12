@@ -1,0 +1,142 @@
+data kaynakları
+
+Nr1 --> https://catalog.data.gov/dataset?res_format=JSON 
+
+Nr2 -->
+01. UCI Machine Learning Repository: Datasets for a very diverse set of problems and tasks.
+
+02. GroupLens Datasets (by Univ of Minnesota): Datasets for recommendation systems for various item types (movies, books, jokes, etc.)
+
+03. Harvard Dataverse: More than 100k datasets used in research projects.
+
+04. The Internet Archive: Dataset archives from websites.
+
+05. Dataverse open-source research data repository: Datasets used in research papers in conferences and journals.
+
+06. Common Crawl Data: Open repository of web crawl data.
+
+07. DBpedia: Open Knowledge Graph extracted from Wikipedia.
+
+08. UK Data Service: UK’s largest collection of economic, social, and population data for research and teaching.
+
+09. OpenML Datasets: Around 4000 datasets shared by the ML community
+
+10. Academic Torrents Datasets: A community-maintained distributed repository for datasets.
+
+Datasets by Major Cloud Providers
+Amazon, Microsoft, and Google have rich dataset directories. Some of their datasets are available in cloud data warehouses, which is handy if you are doing machine learning on the cloud.
+
+If you are doing machine learning on AWS, Microsoft Azure, or Google Cloud, you should look for a similar dataset here. These are set up to be used easily on the cloud and have permissive licenses.
+
+However, these are not as diverse as those in the previous section.
+
+11. AWS Open Data Registry: datasets available as AWS resources.
+
+12. Microsoft Research Open Data: Free datasets from Microsoft Research.
+
+13. Microsoft Azure Open Datasets (Catalog): Curated datasets available on Azure.
+
+14. Google Public Data Directory: Library of public datasets from various sources.
+
+15. Google Dataset Search: Dataset search engine
+
+16. Google Cloud Datasets: Datasets available on Google Cloud.
+
+17. Google BigQuery Public Datasets: Datasets stored in BigQuery data warehouse.
+
+Government Datasets
+Before data science became a thing, it was known as statistics. Governments have been collecting all sorts of data for more than half a century. If you are building models in sociology, economic development, education, and health care, a government is quite likely to have a dataset sufficiently similar to what you need for your problem.
+
+These are very rich datasets, and it may take you some time to locate the right dataset (but that time will be a fraction of what you will need to collect your own datasets). The licenses are lenient as well to encourage usage.
+
+18. Indian Government’s Data: Various datasets from the Indian union government and state governments.
+
+19. European Union’s Data: European Union’s official data source.
+
+20. UK Government Data: Data published by UK’s central government, local authorities, and public bodies.
+
+21. US Government’s Data: Diverse datasets from the US government.
+
+22. US Government Census Data: US census information like education, employment, health, and housing broken down to zip code level.
+
+23. US Bureau of Labor Statistics: Unemployment, pay & benefits, spending, and other employment data.
+
+24. US Congressional Budget Office: Budget, economic outlook, and projections.
+
+25. US Centers for Disease Control and Prevention: Data for alcohol abuse and various diseases.
+
+26. US Medicare Data: Medicare & Medicaid data
+
+Socioeconomic Datasets by World Bodies
+Just like governments, the world bodies like United Nations, WHO, and World Bank have rich socioeconomic datasets.
+
+If you are working on models that span across countries, standardizing and stitching together datasets from multiple governments can take quite an effort. Since the goal is to quickly evaluate ML model feasibility before embarking on expensive data collection, cleaning, and labeling, the datasets from world bodies are a better option.
+
+27. United Nations Data (Catalog): Population (and migration), labor market, agriculture, production, price indices, trade, crime, health, environment, tourism, and development data for various countries.
+
+28. UNICEF Data: Childbirth, health, hygiene, nutrition, mortality, education, and development data from United Nations International Children’s Emergency Fund.
+
+29. World Health Organization Data: WHO data for health, diseases, pandemics, immunization, pollution, and environmental health data.
+
+30. World Bank Data (Catalog): Economy, growth, agriculture, education, energy, mining, debt, infrastructure, poverty, trade, rural and urban development data.
+
+31. International Monetary Fund (IMF) Data: GDP, trade, price index, exchange rate, monetary and financial data.
+
+32. Asian Development Bank: Similar to World Bank Data but for countries in Asia.
+
+33. Organization for Economic Co-operation and Development (OECD): Similar to World Bank data but mainly for OECD member countries.
+
+Financial Data by Stock Exchanges and Central Banks
+Almost all stock exchanges provide historical trading data, and central banks of every nation publish all kinds of financial data. This is your go-to place for trying any time-series models on stock prices, analyzing stock market trends over a period of time, and relations of equities with other asset classes or industrial indicators.
+
+34. India’s National Stock Exchange (NSE) Historical Data: Trading data of Nifty indices and stocks traded on NSE.
+
+35. Reserve Bank of India (RBI) Data: Financial data from India’s central bank.
+
+36. NASDAQ Historical Data: NASDAQ indices and stock trading data.
+
+37. NYSE Historical Data: Data for stocks traded on New York Stock Exchange.
+
+38. US Federal Reserve Data: Financial data from USA’s central bank.
+
+39. Yahoo! Finance (how-to steps): Data of stocks tarded on various stock changes in the world.
+
+Popular Computer Vision Datasets
+There are a number of image datasets. Over time, these have grown very large and richly annotated. These datasets suffice as a starting point for most of the ML solutions for image-related tasks.
+
+40. ImageNet Dataset: The famous image dataset, organized according to the WordNet hierarchy.
+
+41. Common Objects in Context (COCO) Dataset: 300K images (with >200K labeled) with 1.5 million object instances across 80 object categories.
+
+42. Google Open Image Dataset: Large-scale image dataset like COCO.
+
+43. VisualData: Community curated Computer Vision datasets.
+
+Miscellaneous Dataset Sources
+You may have a problem that does not fall into the broad categories described above. That does not mean that there is no dataset to get you quickly evaluate the feasibility.
+
+Google’s dataset search engine listed earlier is a good starting point. You can search for the businesses relevant to your task, e.g., yelp for business reviews, Airbnb for rental properties, and YouTube for video.
+
+Here are some datasets for sports, news, and other businesses.
+
+44. FiveThirtyEight: Sports and election datasets from ABC News.
+
+45. BuzzFeed News Data: News, crime, polls data curated by BuzzFeed News.
+
+46. Yelp Open Dataset: Business review dataset from Yelp.
+
+47. Airbnb Data: Listings and reviews of properties in various cities.
+
+48. YouTube Video Dataset: YouTube data with human-verified segment annotations.
+
+49. Kaggle Datasets: Datasets from various Kaggle competitions.
+
+50. Wikipedia Database: Data dump of all available content on Wikipedia.
+
+https://towardsdatascience.com/datasets-for-machine-learning-and-data-science-a27a5d0ba03
+
+Nr3 -->
+
+
+
+

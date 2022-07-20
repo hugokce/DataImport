@@ -779,10 +779,7 @@ mongodb://
 Getfile processor /opt/nifi/muthukumar_studies/inputfiles
 Sonra PutMongoRecord ekleriz
 Mongo URI yazarız 
-mongodb://nifimongouser:nifi123@ds131323.mlab.com:31323/nifimongo
 mongodb://nifimongouser:""@ds131323.mlab.com:31323/nifimongo
-
-kaydederken sildim
 
 mongo databasename nifimongo deriz
 mongo collection name nificollection deriz

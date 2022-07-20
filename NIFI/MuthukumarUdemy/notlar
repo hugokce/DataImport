@@ -2,3 +2,964 @@ https://www.udemy.com/course/apache-nifi-complete-master-course-hdp-automation-e
 
 5 saat 
 
+https://www.udemy.com/course/apache-nifi-complete-master-course-hdp-automation-etl/learn/lecture/13900148#overview
+
+5 saat
+
+bu eğitim için dockerda nifi container açtım onu ayağa kaldırıp  https://localhost:8443/nifi/login
+
+
+Kurulum
+nifi\nifi-1.8.0\bin altında .\run-nifi.bat çalıştırılır windowsta
+
+Linuxta
+bin/nifi.sh run  çalıştırır
+bin/nifi.sh start arka planda çalıştırır
+bin/nifi.sh status
+bin/nifi.sh stop
+
+Install as a service
+bin/nifi.sh install dersek default nifi olarak kurar
+bin/nifi.sh install dataflow dersek dataflow adıyla kurar
+
+sudo service nifi start
+sudo service nifi stop
+sudo service nifi status
+
+localhost:8080/nifi 
+
+docker exec -it --user root nifi /bin/bash
+ile powershell ile bağlandık
+/opt/nifi/muthukumar_studies  klasörü oluşturduk
+
+şimdi basit bir örnek yapalım
+generate flow file --> update attribute ekledik --> putfile ekledik
+generate flow file properties 100B file size yaptık
+scheduling 10 sn yaptık
+
+UpdateAttribute properties gelip Add Property dedik
+filename dedik value olarak da
+${filename:prepend(${now():format("yyyy-MM-dd-HH-mm-ss")})}  dedik
+
+şimdi de putfile a directory verelim
+F:\App_Data\Apache_nifi\DemoDef  dedik
+bende şöyle dedik
+/opt/nifi/muthukumar_studies/outputfiles
+bu klasöre 5 adet dosya yazıldı.
+ls -ll deyince 5 dosyayı görmüş olduk
+Relationship terminate olanları seçtim
+
+Bölüm 2
+Simple Work flow yapalım
+GetFile Processor ekledik 
+Input directory için /opt/nifi/muthukumar_studies/inputfiles verdik
+sonra putfile ekleyelim directory /opt/nifi/muthukumar_studies/outputfiles 
+verelim. 
+Şimdi log klasöründen bir dosyayı alıp input directoryye yapıştıralım
+
+cp /opt/nifi/nifi-current/logs/nifi-request_2022-07-12.log /opt/nifi/muthukumar_studies/inputfiles/
+ls /opt/nifi/muthukumar_studies/outputfiles/ deyince dosya gelmiş oluyor
+
+Bölüm 3
+
+sudo apt install net-tools
+ifconfig açılmazsa yüklenir 
+
+https://www.projectpro.io/recipes/store-postgres-data-mongodb-table-nifi
+
+bir containerdan diğerin bağlantı kontrol edilirken
+bridge içindeki containera bağlanılabilir
+docker inspect 071 ile networkID si öğrenilir ve 
+aynı networkde mi kontrol edilir.
+apt-get install iputils-ping  ping yoksa kurulur
+ping ip adresi ile bağlantı kontrol edilir
+
+dockerfilea eklemek istersek
+FROM ubuntu
+RUN apt-get update && apt-get install -y iputils-ping
+CMD bash kullanılır
+172.17.0.2 nifi
+172.17.0.3 mongo
+
+Connection configurationa bakalım
+
+getFile ekleyelim PutFile ekleyelim
+ortadaki connectiona gelip MoveFile dedik adına.
+getfile da /opt/nifi/muthukumar_studies/inputfiles
+putfileda /opt/nifi/muthukumar_studies/outputfiles dedik
+
+Connectiondaki settingste yer alan Back Pressure Object Threshold
+ayarını 5e çekersek 5 limit olur 5ten sonra gelen dosyayı bekletir
+FlowFile Expiration 30 sn dersek 30sn geçerse expired olur
+
+GetFileda penalty duration 30 sn ise 30sn sonra tekrar bu flow 
+işlem yapabilir demektir o 30 sn bu flowfilea erişilemez
+yield duration bu 1 sn ise o 1 sn geçene kadar schedule edilemez
+bulletin level warn error vs var
+
+Getfile schedule kısmında 
+
+Scheduling CRON
+Field        Valid values
+Seconds        0-59
+Minutes        0-59
+Hours          0-23
+Day of Month   1-31
+Month          1-12 or JAN-DEC
+Day of Week    1-7 or SUN-SAT
+Year(optional) empty, 1970-2099
+https://docs.cloudera.com/HDPDocuments/HDF3/HDF-3.1.0/bk_user-guide/content/scheduling-tab.html
+
+Run duration kısmı ile maximum ne kadar süre taskın çalışmasını veriyoruz
+0ms demek 1 kez çalış 1 saat verilirse 1 saat boyunca çalış demektir
+
+Bölüm 4
+Working with Attributes
+GetFile processor ekleyelim /opt/nifi/muthukumar_studies/inputfiles
+Getfileda settingste bulletin levelı info seçtik
+RouteOnAttribute processor ekleyelim properties içinde yeni bir
+property ekleyelim adına file-starts-with-a diyelim
+value olarak da ${filename:startsWith('a')} verelim
+şimdi de logAttribute processor ekleyelim
+routeu bağlayalım ve starts-with-a for relationshipte seçelim
+şimdi de updateattribute ekleyelim ve unmatched olanlar için
+for relationship işaretleyelim
+UpdateAttributeta yeni property ekleyelim
+adına FileMatchIssue diyelim Value olarak da 
+Not Starting with a diyelim
+
+şimdi input directoryye 
+touch a_for_nifi_testflow.txt  adlı dosya atalım
+Route on Attribute üzerinde gitti LogAttributetan da görebiliriz
+şimdi de a ile başlayaman bir dosya atalım
+touch without_a_for_nifi_testflow.txt 
+bu sefer de unmatched üzerinde görünüyor
+RouteOnAttribute ile dataları ayırabiliriz özelliklerine göre.
+
+
+3_1_logfile_attributes.txt indirildi
+
+Handling Failures
+Putfile ve UpdateAttribute ekledik
+LogAttributeu UpdateAttributea bağladık
+Add Property diyelim filename diyelim adına
+value olarak da ${hostname()}-${now():format('yyyy-dd-MM-HH-mm-ss')}-${filename}
+verelim dosya adının önüne hostname ve timestamp ekliyoruz böylece.
+sondaki ss saniyeyi silersek dakika olarak saklar
+Bu updateattributeu da putfilea bağlayalım
+directory olarak /opt/nifi/muthukumar_studies/outputfiles/${path}
+dedik böylece dosya da klasör de oluştursak onu output filesa atar
+şimdi input filesa dosya attık
+559d17b44036-2022-14-07-11-10-33-without_a_for_nifi_testflow.txt
+halinde getirdi hem hostname hem timestamp başına eklendi
+şimdi inputfolder altında yeni klasör açsak onun altına da
+dosya eklesek nifi bu klasörle beraber dosyayı da outputfilesa taşır
+ls /opt/nifi/muthukumar_studies/outputfiles/folderfornifimove/
+559d17b44036-2022-14-07-11-13-35-without_a_for_nifi_testflow.txt
+
+create template ile alttaki dosya oluşturuldu
+GetAndPutFileWithTimeStamp.xml indirildi
+
+Bölüm 5 Apache Kafka
+docker pull wurstmeister/kafka
+http://wurstmeister.github.io/kafka-docker/
+https://www.michael-noll.com/blog/2013/03/13/running-a-multi-broker-apache-kafka-cluster-on-a-single-node/
+https://allthingshadoop.com/2013/12/07/using-vagrant-to-get-up-and-running-with-apache-kafka/
+
+Kafka_Integration Muthukumar 
+cd F:\software\installed\kafka\kafka_2.11-1.1.0
+
+.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+.\bin\windows\kafka-server-start .\config\server.properties
+.\bin\windows\kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic kafka_nifi_consumer
+.\bin\windows\kafka-topics --list --zookeeper localhost:2181
+.\bin\windows\kafka-console-producer --broker-list localhost:9092 --topic kafka_nifi_consumer
+.\bin\windows\kafka-console-consumer --zookeeper localhost:2181 --from-beginning --topic kafka_nifi_demo
+.\bin\windows\kafka-topics --zookeeper localhost:2181 --delete --topic kumar
+
+kafka-docker-master
+https://github.com/wurstmeister/kafka-docker
+docker-compose up -d
+Broker arttırmak istersek dockerfile olduğu klasöre gelip 
+docker-compose scale kafka=3 çalıştırılır.
+
+Şimdi wurstmeister kafka makinesini ayağa kaldırdık
+
+şimdi nifi makinesini bu networke bağlayalım
+docker network ls deyip adını alabiliriz
+https://stackoverflow.com/questions/54720587/how-to-change-the-network-of-a-running-docker-container
+docker network connect kafka-docker-master_default nifi
+docker inspect 559 ile nifi networke bağlandı mı hangi IP aldı inceleyebiliriz
+172.19.0.4 IPSini aldı
+diğer makinelere ping atıyor
+172.19.0.2 nifi
+172.19.0.3 zookeeper
+172.19.0.4 kafka1
+172.19.0.5 kafka3
+172.19.0.6 kafka2
+
+şimdi kafka makinesine bağlanalım powershellden
+docker exec -it --user root kafka-docker-master_kafka_1 /bin/bash
+ps command not found derse
+apt-get update && apt-get install procps
+netstat -anp | grep 9092  dinlenmesini kontrol edebiliriz
+netstat -anp | grep 2181  bu da dinleniyorsa iyi haber
+
+/opt/kafka_2.13-2.8.1/bin kafka sh dosyaları burada
+bin/kafka-topics.sh --list --zookeeper localhost:2181  bu çalışmazsa alttaki list komutu denenebilir
+https://www.baeldung.com/ops/kafka-list-topics
+
+zookeepera bağlanmak için
+docker exec -it --user root kafka-docker-master_zookeeper_1 /bin/bash
+
+Listelemek için topicleri
+bin/kafka-topics.sh --list --zookeeper zookeeper:2181
+
+kafka-topics.sh --create --zookeeper 172.19.0.4:2181 --replication-factor 1 --partitions 1 --topic kafka_nifi_consumer
+kafka-topics.sh --create --bootstrap-server f4528874c287:9092 --topic kafkanificonsum partitions 1 --replication-factor 1
+timeout veriyor bu halleri çalışmazsa alttaki komut denenebilir
+
+kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 1 --partitions 1 --topic kafkanificonsumer
+bu haliyle çalıştı 
+https://github.com/confluentinc/cp-docker-images/issues/813
+oluşan topicin özelliklerine bakmak istersek 
+
+topici incelemek istersek alttaki kodu kullanırız
+kafka-topics.sh --describe --topic kafkanificonsumer --zookeeper zookeeper:2181
+
+topici silmek istersek
+bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic DummyTopic
+    kafka-topics.sh --zookeeper zookeeper:2181 --delete --topic kafka_nifi_consumer
+
+Şimdi Nifida GetFile ekleyelim
+Sonra PublishKafka_2_0 ekleyelim bağlayalım
+Getfileda input directory için
+/opt/nifi/muthukumar_studies/inputfiles dedik
+PublishKAfka_2_0 da ayarları yapalım
+KafkaBRokers localhost:9092 idi 
+172.19.0.4:9092 verdim
+sonra topic name verelim  kafkanificonsumer
+Use Transaction true idi False yaptık
+Delivery Guarantee kısmı Guarantee Replicated Delivery 
+idi Best Effort yaptık
+
+consumer başlatalım artık
+kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --from-beginning --topic kafkanificonsumer
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic kafkanificonsumer
+bu çalışmazsa alttaki denenir
+kafka-console-consumer.sh --bootstrap-server 172.19.0.4:9092 --from-beginning --topic kafkanificonsumer
+bu çalışıyor
+
+şimdi yeni bir topic oluşturalım
+kafka-topics.sh --create --zookeeper zookeeper:2181 --replication-factor 2 --partitions 1 --topic kafkanificonsumer1
+
+INVALID_REPLICATION_FACTOR hatası alınırsa
+in/kafka/conf/srvers.properties 
+apt update
+apt install vim
+
+/opt/kafka_2.13-2.8.1/config altındaki server.properties dosyasında
+
+#listeners=PLAINTEXT://:9092
+listeners=PLAINTEXT://172.19.0.4:9092
+# Hostname and port the broker will advertise to producers and consumers. If not set,
+# it uses the value for "listeners" if configured.  Otherwise, it will use the value
+# returned from java.net.InetAddress.getCanonicalHostName().
+#advertised.listeners=PLAINTEXT://your.host.name:9092
+advertised.listeners=PLAINTEXT://172.19.0.4:9092  
+eklemeleri yapılır
+
+Bu da çözmezse
+https://github.com/conduktor/kafka-stack-docker-compose
+https://www.youtube.com/watch?v=Zq8aMrRnvQE
+githubını indirdim
+docker-compose -f ./zk-single-kafka-single.yml up
+docker-compose -f ./zk-single-kafka-single.yml ps 
+
+Producer başlatmak için bu komut kullanılır
+kafka-console-producer.sh --bootstrap-server 172.19.0.4:9092 --topic kafkanificonsumer
+https://www.youtube.com/watch?v=CJIRxgyMhow
+https://www.confluent.io/blog/kafka-listeners-explained/
+
+kafka-console-consumer.sh --bootstrap-server 172.19.0.4:9092 --from-beginning --topic kafkanificonsumer
+ile consumer başlattık
+Şimdi Nifide getfile Kafka Consumer flowunu çalıştıralım
+şimdi inputfilesta dosya oluşturup içine notlar yazınca consumer bunu okudu
+
+Producer kısmına bakalım
+kafka-console-producer.sh --bootstrap-server 172.19.0.4:9092 --topic kafkanificonsumer
+Şimdi Nifide ConsumeKafka_2_0 ekleyelim
+topic name kafkanificonsumer verelim
+Group ID nifi_consumer dedik
+PutFile ekleyelim
+içine outputfiles adresini verelim /opt/nifi/muthukumar_studies/outputfiles
+Şimdi flowu çalıştıralım
+Producer terminali açalım
+
+Apache Nifi As Consumer diyelim bunu yapınca outputfiles kısmında dosya oluşturur ve
+içine yazdığımız text olan Apache Nifi As Consumer ekler
+kafka-docker-master_kafka_1:9092 
+172.19.0.4:9092 kafka brokers olarak verdim
+
+-----------------------------------------------------------------------
+ProcessGroup.xml, Funnel_COmbine.xml, Funnel_Forking.xml indirildi
+AddSHA process group ekledik
+Input port  FileToAddSHA diyelim adına.
+Output port ekleyelim FileWithSHA diyelim
+CryptographicHashContent processor ekleyelim
+FileTo yo hashe bağlayalım hashi de FileWithSHAya bağladık 
+Şimdi processgroup dışına çıkıp getfile ekleyelim
+Getfileı groupa bağladık otomatik olarak inputporttakine bağlandı
+/opt/nifi/muthukumar_studies/inputfiles input directory dedik
+Bir de LogAttribute ekleyelim process groupu da buna bağlayalım
+
+Şimdi Kafka makinesini kapattım
+Network olarak bridgee döndü 172.17.0.2 ipsini aldı
+Şimdi input files dosya ekledik
+dosyayı alınca LogAttribute içinde content_SHA-256 değerini görebiliyoruz
+
+Şimdi Funnel ekleyelim
+AddSHA yedeğini alalım ve içine Funnel ve PutFile ekleyelim
+GetFileı Funnela bağlayalım
+Şimdi bu Funnelı PutFilea ve AddSHAIn processgroupa bağlayalım
+PutFilea /opt/nifi/muthukumar_studies/outputfiles verelim
+Şimdi flowu çalıştıralım ve input filesta dosya oluşturalım
+touch nififunneltest.txt /opt/nifi/muthukumar_studies/inputfiles/
+Funnel sayesinde dosya outputfiles kopyalanır
+
+Funnel Combine için FunnelCombine adında process group oluşturduk
+2 tane GetFile ekledik Birinci dosya adresine funnelone diğerine funneltwo dedik
+/opt/nifi/muthukumar_studies/funnelone
+/opt/nifi/muthukumar_studies/funneltwo
+Şimdi Funnel ekleyelim
+Sona da PutFile ekleyelim
+/opt/nifi/muthukumar_studies/outputfiles directory olsun
+Böylece 2 klasörden gelen dosyaları tek bir klasörde toplayabiliriz
+
+Monitoring kısmında Data_Provenance.xml indirildi
+Sağ üstte butonda summary kısmı var 
+Ayrıca summary açılınca system diagnostics incelenebilir
+
+MYSQLDen data almak için
+MySQL-Avro-Json.xml
+CSV_to_JSON.xml
+6_5_CSV_to_JSON.txt
+State_Management_MySQL_Incremental_Fetch.xml
+6_4_1_incremental_Fetch_query_mysql.txt
+CSV_To_JSON_Dynamic_Schema.xml
+indirildi
+Şimdi Controller Servicestan + ile DBCPConnectionPool ekleyelim
+Yeni process group oluşturduk NifiMySQL 
+Boş ekran configure dedik Controller Serviceste +ya basalım
+DBCP Connection Pool ekledik Configure edelim şimdi
+Database Connection URL için jdbc:mysql://127.0.0.1:3306 dedik
+Database Driver Class Name  için com.mysql.jdbc.Driver dedik
+Database Driver Location için F:\software\driver\mysql-connector-java-8.0.15.jar dedik
+Database user için root dedik
+sonrasında enable edilir
+Şimdi QueryDatabaseTable processor ekledik
+sonra convertAvrotojson processor ekledik
+sonra PutFile ekledik
+Şimdi QueryDatabaseTable ayarlarını yapalım
+Properties içinde DataBase Connection Pooling Service açınca  DBCPConnectionPool seçtik az önce 
+oluşturduğumuz.
+Database Type olarak MySQL seçtik
+table name olarak employees.departments alıyoruz
+Sonra query convertavroya onu da PutFilea bağladık
+ConvertAvroyu kendisine bağladık ve failure seçtik
+PutFile için directory verelim 
+F:\App_data\Apache_Nifi\OutDB dedik
+
+Ayrıca QueryDatabaseTable Run Schedule 30sn yaptık
+
+docker container run -it --user root mysql /bin/bash
+ ls /var/lib/ altında mysql dosyası
+docker container run -it --user root --publish 3306:3306 -e MYSQL_ROOT_PASSWORD=   mysql
+https://medium.com/devopsturkiye/docker-mysql-%C3%B6rne%C4%9Fi-5a30ae10635f
+
+https://hevodata.com/learn/docker-mysql/
+docker pull mysql/mysql-server:latest
+docker run --name=mysqlserver -d mysql/mysql-server:latest
+apt-get install mysql-client şimdilik kurmadım
+docker logs mysqlserver deyip verdiği şifreyi buluruz generated_root_pas kısmına bakarız
+MFDEIJ16=78_qji1+G5mQ_/#j%9%IK9a
+docker exec -it mysqlserver /bin/bash ile container bash girilir
+bash içine girince mysql -uroot -p girilir alınan şifre eklenir
+mysql> yazısı geliyorsa artık mysql açılmış demektir
+root şifresi değiştirilmek istenirse
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpassword'; yazılır
+şimdi directory oluşturalım
+mkdir -p /root/docker/mysqlserver/conf.d
+nano /root/docker/mysqlserver/conf.d/my-custom.cnf
+kurulumlarda sorun olursa bu şekilde ekleme de yapıbilir
+echo "[mysqlId]" > /root/docker/mysqlserver/conf.d/my-custom.cnf
+echo "max_connections=250" >> /root/docker/mysqlserver/conf.d/my-custom.cnf
+cat /root/docker/mysqlserver/conf.d/my-custom.cnf
+
+Nifi eğitime devam edelim
+Transform CSVtoJSON
+randomuser.me adresinden cvs oluşturmuş hoca
+
+Şimdi CSVtoJSON process group oluşturup
+canvasta configure deyip controller service açtık
+Controller Servicesta AvroSchemaRegistry ekledik
+ayarlarına bakalım
+Propertiese gelip users property ekledik
+içine de şunu yazdık
+{
+  "type": "record",
+  "name": "UserRecord",
+  "fields" : [
+    {"name": "id", "type": "long"},
+    {"name": "title", "type": ["null", "string"]},
+    {"name": "first", "type": ["null", "string"]},
+    {"name": "last", "type": ["null", "string"]},
+    {"name": "street", "type": ["null", "string"]},
+    {"name": "city", "type": ["null", "string"]},
+    {"name": "state", "type": ["null", "string"]},
+    {"name": "postcode", "type": ["null", "string"]},
+    {"name": "gender", "type": ["null", "string"]},
+    {"name": "email", "type": ["null", "string"]},
+    {"name": "username", "type": ["null", "string"]},
+    {"name": "password", "type": ["null", "string"]},
+    {"name": "salt", "type": ["null", "string"]},
+    {"name": "md5", "type": ["null", "string"]},
+    {"name": "sha1", "type": ["null", "string"]},
+    {"name": "sha256", "type": ["null", "string"]},
+    {"name": "phone", "type": ["null", "string"]},
+    {"name": "cell", "type": ["null", "string"]},
+    {"name": "name", "type": ["null", "string"]},
+    {"name": "idvalue", "type": ["null", "string"]},
+    {"name": "dob", "type": ["null", "string"]},
+    {"name": "registered", "type": ["null", "string"]},
+    {"name": "picturelarge", "type": ["null", "string"]},
+    {"name": "picturemedium", "type": ["null", "string"]},
+    {"name": "picturethumbnail", "type": ["null", "string"]},
+    {"name": "nat", "type": ["null", "string"]}
+  ]
+}
+
+Ardından CSVReader controller service ekledik
+şimdi ayarlarına bakalım
+Schema Access Strategy kısmına Use Schema Nama Property dedik
+schema registry deyince AvroSchemaREgistry seçtik
+schema name olarak da ${schema.name} dedik
+value separator de zaten comma ,
+tamam deyip enable ettik
+Sonra JsonRecordSetWriter controller service ekledik
+özelliklerine bakalım
+Schema Write Strategy Set 'schema.name' Attribute dedik
+Schema Access Strategy olarak Use schema name property dedik
+Schema REgistry yine AvroSchemaREgistry seçtik
+enable ettik flowa döndük
+şimdi GetFile ekledik adına GETCSVFİle dedik
+InputDirectory kısmına CSV koyacağımız yeri veririz
+/opt/nifi/muthukumar_studies/inputfiles
+Sonra Update Attribute ekledik adını Add Schema Name Attribute dedik
+Add Property diyelim schema.name users dedik
+Bu controller serviste verdiğimiz users ve schema.name den geliyor
+Şimdi ConvertRecord processor ekleyelim
+adına da ConvertRecord - CSVtoJSON diyelim
+Property kısmında 
+Record Reader CSVREader dedik
+Record Writer kısmında JsonRecordSetWriter dedik
+sonra kaydettik
+Sonra UpdateAttribute processor ekleyelim
+adına Add JSON File Name Extension diyelim
+Propertiesten filename adında property ekleyip içine  ${filename}.json
+ekleyelim
+Son olarak da PutFile ekleyelim
+Directory olarak /opt/nifi/muthukumar_studies/outputfiles dedik
+şimdi input filesa gelip
+wget https://github.com/hugokce/DataImport/blob/main/NIFI/MuthukumarUdemy/testindir.csv dedik
+şimdi flowu çalıştıralım
+çalıştıktan sonra json formatına dönüp sonuna json eklentisi geldi
+
+manage state with MySQL and Incremental Fetch kısmı
+mysql de şu tablo oluşturuldu
+CREATE TABLE `store` (
+  `store_id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT,
+  `manager_staff_id` tinyint(3) unsigned NOT NULL,
+  `address_id` smallint(5) unsigned NOT NULL,
+  `last_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`store_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+Şimdi Nifia bakalım
+MySQLIncremental process group ekledik
+QueryDatabaseTAble processor ekleyelim
+sonra ConvertAvrotoJSON processor ekleyelim
+PutFile processor ekleyelim
+IncrementalOut diye klasör oluşturduk bunu putfilea verdik
+ben yine outputfiles veriyorum
+/opt/nifi/muthukumar_studies/outputfiles
+Şimdi QueryDatabaseTable ayarlarını yapalım
+Database Connection PoolingService DBCPConnectionPool diyelim
+table name olarak employees.store diyelim
+bir de maximum value columns seçelim ona da store_id diyelim
+store_id 4 eklersek değişikliği görebiliriz
+
+Transform CSV to JSON using dynamic schema kısmı
+mockaroo.com ile 
+id,first_name,last_name,email,gender,ip_address oluşturalım
+1000 elemanlı csv oluşsun
+MOCK_DATA.csv  oluştu bunu githubtan çekelim
+wget https://github.com/hugokce/DataImport/blob/main/NIFI/MuthukumarUdemy/MOCK_DATA.csv
+dedik inputfilesa çektik
+GetFile, PutFile ve ConvertRecord processor ekledik
+inputfiles ve outputfiles dosyalarını tanıttık
+Şimdi convert record processor ayarlarını yapalım
+Record Reader kısmına CSVReader diyelim
+configurationa bakalım
+Schema Access Strategy kısmında Use String Fields From Header diyelim
+şimdi de jsona controllera bakalım
+Record Writer kısmına da JsonRecordSetWriter diyelim
+configure diyelim
+Schema Write Strategy  Do not write schema olsun
+Schema Access Strategy inherit record schema olsun
+şimdi enable ettik
+flowa dönelim
+çalıştıralım dosyayı csvden jsona çevirdi
+
+Nifi Registry 0.3.0 indiriliyor
+nifi-registry.sh çalıştırılıyor
+nifi-registry.properties ile ayarlar yapılabilir
+
+versiyon kontrolü için registry sayfası açılır
+localhost:18080/nifi-registry/administration/workflow
+new bucket denir CSVProcessor
+Canvasa gelinir Controller Service açılır Registry Clients seçilir
++ ile eklenir localhostregistry URL de http://localhost:18080 verilir
+Sonra process group açılır ve canvasta Version --> Start version control denilir
+registry seçilir localhostregistry, bucket seçilir CSVProcessor
+FlowName olarak da CSVToJSON verilir
+Şimdi bu process groupu değiştirirsek 
+VErsiona geldiğimiz zaman Commit etmemiz gerek
+Show dersek yapılan değişikliği görürüz
+revert ile de eski versiyona dönebiliriz
+
+Nifi Cluster kısmı
+Cluster yaparken nifi.properties dosyasında şu ayarlar yapılmalı
+nifi.web.http.host, nifi.web.http.port, nifi.cluster.is.node, 
+nifi.cluster.node.address, nifi.cluster.node.protocol.port,
+nifi.zookeeper.connect.string
+
+state-management.xml dosyasında ise
+zk-provider -<property name = "Connect String">
+node1:2181,node2:2181,node3:2181 olarak ayarlanır
+
+3 tane makinemiz var
+/opt/nifi/nifi-1.9.0 adresindeyiz
+cd conf
+vi nifi.properties dedik
+nifi.web.http.host=node1 dedik
+nifi.web.http.port= 8080 dedik 
+nifi.cluster.is.node=true dedik  
+nifi.cluster.node.address =node1 dedik
+nifi.cluster.node.protocol.port=11122 spesifik port verdik konuşsunlar diye.
+nifi.cluster.flow.election.max.wait.time=2 mins dedik
+nifi.zookeeper.connect.string=node1:2181,node2:2181,node3:2181 dedik
+
+vi state-management.xml diyelim
+zk-provider taginin içine 
+-<property name = "Connect String">
+node1:2181,node2:2181,node3:2181 olarak ayarlanır
+Root node da node1 girildi
+
+tekrar nifi.propertiese gelirsek
+nifi.state.management.provider.cluster=zk-provider yazılır
+bu ayarları tüm nodelarda yaparız
+tüm makinelerde nifi başlatılır
+./bin/nifi.sh start && tail -f ./logs/nifi-app.log 
+
+node1:8080/nifi ile bağlanabiliriz makinelere
+sağ üstte yer alan butondan cluster kısmına girip görebiliriz
+Cluster olunca sol üstte 3 node ise 3/3 der
+ayrıca cluster deyince scheduling kısmındas execution ile all nodes
+ ya da primarynodes seçilebilir
+
+Nifi Bigdata system kısmı
+Nifi_Hive.xml ve PutHDFS.xml indirildi
+Cloudera clustertan çalışıyor
+Generate File ekledik
+PutHDFS ekledik ayarlarını yapalım
+Directory olarak /user/root/nifiputDemo dedik
+Hadoop Configuration Resources kısmına da 
+Clouderadan indirdiğimiz config dosyalarını gösteririz
+/etc/hadoop/conf.cloudera.hdfs/core-site.xml, /etc/hadoop/conf.cloudera.hdfs/hdfs-site.xml
+deriz
+şimdi hdfsde dosya yok oraya put edeceğiz çünkü
+hdfs dfs -ls /user/root/nifiputDemo
+flowu çalıştırınca dosyaların geldiğini görürüz
+
+Nifi Hive Interaction kısmı
+cloudera manager üzerinden hue ile işlem yapılıyor
+Actions altında Download Client Configuration diyoruz 
+Şimdi canvasta configuration kısmına geliyoruz contoller services + diyoruz
+HiveConnectionPool diyoruz configuration ayarlarını yapalım
+Database Connection URL jdbc:hive2://node1:10000 dedik
+Hive Configuration Resources kısmına 
+/etc/hive/conf/hive-site.xml, /etc/hadoop/conf.cloudera.hdfs/core-site.xml, /etc/hadoop/conf.cloudera.hdfs/hdfs-site.xml
+buraya hive-site.xml, core-site.xml ve hdfs-site.xml dosyalarının yerini veriyoruz
+
+Şimdi process groupa gidelim
+NifiHive
+Hive deyip SelectHiveQL processor ekleyelim
+Schedulingte Execution Primary Node dedik Run schedule 5 sn dedik
+Propertieste Hive Database Connection Pooling Serviceta az önce oluşturduğumuz
+HiveConnectionPool seçelim
+HiveQL Select Query kısmına hive oluşturduğumuz tabloya select atalım
+select * from nifi.users_semicolon_ext 
+sonra avrotojsona bağlayalım success seçelim relationda failure seçelim
+kendine bağlantı yapıp failure seçelim
+ConvertAvrotoJSON processor ekleyelim bunu da updatee bağlayalım
+kendine bağlantı yapıp failure seçelim
+sonra updateattribute ekleyelim
+en son olarak da PutFile ekleyelim 
+Scheduling Execution Primary Node seçelim
+PutFile directory olarak da 
+/opt/nifi/muthukumar_studies/outputfiles verelim
+Relation için success seçelim kendine connection atıp failure seçelim
+avro formatında tablodaki verileri sakladı
+
+HTTP Processor kısmı
+GetHTTP Processor sadece Get işlemi yapar
+canvasa gelelim PG13_HTTP ekledim
+GetHTTP processor ekleyelim Scheduling run schedule 10 sec verdik
+Scheduling Execution PrimaryNode seçildi
+Properties kısmında 
+URL kısmına http://node1:8080/nifi-app/system-diagnostic
+Filename kısmına system-diagnostics dedik
+Sonra LogAttribute ekleyelim relation success terminate diyoruz
+Settings kısmında BulletinLevel warndan INFO olarak değiştirdik
+Ayrıca propertieste Log Payload falsetan trueya çevirdik
+çalıştırdık
+
+PostHTTP 
+post gönderir. gelen flowfileları kabul edebilir
+success ve error relations destekler
+https://docs.postman-echo.com
+https://postman-echo/post
+Şimdi Canvasta configure deyip controller service açalım
++ ile StandardSSLContextService ekleyelim
+configure edelim
+Şimdi primary nifi nodeta şunu çalıştıralım
+keytool -genkeypair -alias nifiserver -keyalg RSA -keypass NifiSuperSecret -storepass NifiSuperSecret -keystore post_http_server_keystore.jks -dname "CN=Muthu4all NiFi Server" -noprompt
+PostHTTP processor ekleyelim
+az önceki terminalde 
+keytool -list -v -keystore post_http_server_keystore.jks diyelim
+Şimdi SSLContextteki ayarları yapalım
+Keystore Filename için /root/nifi/post_http_server_keystore.jks diyelim
+keystore pas için nifisupersecret yazmıştık onu girelim keypass için de onu girelim
+Keystore type için jks dedik
+TLS protocolü SSL yaptık
+şimdi tüm makinelere kopyalama yapalım
+scp post_http_server_keystore.jks root@node3:/root/nifi/
+scp post_http_server_keystore.jks root@node1:/root/nifi/
+Şimdi posthttp ayarlarını yapalım
+URL https://postman-echo.com/post
+Use chunked encoding kısmını false yaptık
+LogAttribute ekleyelim bağlayalım success seçelim
+Postu kendine bağlayalım failure seçelim onu configure ederken
+flowfile expiration 60sec seçelim
+Post primary node seçelim executionda
+LogAttribute ayarlarken LogPayload true diyelim
+bulletin level info yapalım
+Şimdi en başa generate flowfile ekleyelim
+generate schedule 10 sec ve execution primary node olacak
+artık çalıştırabiliriz
+
+ListenHTTP processor
+sadece 1 relationship success yapar
+error handling yoktur
+gelen mesajları almaz
+
+ListenHTTP ve LogAttribute ekleyelim
+ListenHTTP ayarlayalım
+base path zaten contentListener geldi
+listening port da 7070 verdik
+Scheduling yine primary node olacak
+LogAttributeta bulletin level info dedik 
+şimdi primary node terminalden şu kodları çalıştıralım
+curl -v -X POST http://node2:7070/contentListener
+curl -v -X POST -H "customerHttpHeader: someHeaderValue" -d "someDataPosted" http://node2:7070/contentListener
+bulletin boardda çıktıyı görebiliriz
+
+InvokeHTTP without SSL
+get ve posttaki özellikler benzerdir 
+incominge izin verir
+şimdi canvasta öncelikle generate flow file ekleyip Source diyelim
+30 sec verelim generate için ve file size 10b olsun
+sonra update attribute ekleyelim adına Update query value to nifi diyelim
+Property ekleyelim q diyelim içine nifi diyelim
+Sonra InvokeHTTP ekleyelim adını Search Google diyelim
+remote url olarak https://www.google.com verelim
+Put Response Body In Attribute için responseBody diyelim
+Max Length To Put In Attribute 2560 diyelim 
+kendine bağlayıp retry ve failure diyelim
+şimdi Route on Attribute ekleyelim adına da Route On Status Code diyelim
+original ile bağlayalım search googlea
+property ekleyelim
+200 deyip value olarak da 
+${invokehttp.status.code:equals(200)} diyelim
+son olarak da LogAttribute ekleyelim
+200 ve unmatched olarak bağlayalım
+Info olarak bulletin level diyelim loga
+UpdateAttribute uyarı veriyordu noretry ve failure kısmı için terminate dedim
+şimdi çalıştırdık bulletin boardtan baktık
+responseBodyyi gördük
+
+InvokeHTTP with SSL
+Generate FlowFile , InvokeHTTP ve LogAttribute ekledik
+InvokeHTTP ayarlarını yapalım
+Remote URL https://postman-echo.com/get?foo1=bar1&foo2=bar2
+SSL Context service de standardsslcontextservice olacak
+ekledik controller servicete adını StandardSSLContextServiceInvoke verdim
+keystore istiyor node3te şu kodları çalıştıralım
+echo -n|openssl s_client -connect postman-echo.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > postman-pub-cert.crt
+ardından alttaki kodu çalıştıralım
+keytool -import -file postman-pub-cert.crt -alias postman-pub-cert -keystore 1_server_truststore.jks -storepass NifiSuperSecret -noprompt 
+böylece sertifika keystorea eklenir
+şimdi listeyelim 
+keytool -list -v -keystore 1_server_truststore.jks
+şimdi ssl context ayarını yapalım
+truststore filename için /root/nifi/1_server_truststore.jsk deriz
+type için JKS tls protocol için SSL deriz
+Invoketa sslcontext invoke olanı seçtik dönünce processora
+yine put response body in attribute kısmında responseAttribute deriz
+max length için 2560 deriz
+LogAttributeta bulletin levelda WARN u INFO olarak çevirdik
+generate flow file schedule 10 sec yaptık
+Executionlar hepsinde Primary olarak belirlendi
+
+AWS kısmı
+Nifi_AWS_S3_PutObject.xml
+Nifi_AWS_S3_ListBucket.xml
+Nifi_AWS_S3_PutObject_With_Controller_Service.xml indirildi
+S3 önce bucket oluşturuyoruz awsde muthu4all-nifi adını verdik
+Identity access management IAM ekleyelim
+nifi_demo nifi_group da ekleyelim
+Access Key ve secret access key var
+Şimdi Nifide GetFile ve PutS3Object processor ekleyelim
+getfile /opt/nifi/muthukumar_studies/inputfiles dedik
+PutS3Object açalım
+bucket için muthu4all-nifi dedik 
+ayrıca aldığımız access key giriyoruz secret access key de girelim
+Inputa dosya ekleyip çalıştırdığımızda S3teki buckettan görebiliriz bu dosyayı
+
+AWS S3 list objects ListS3 Processor
+ListS3 Processor ve LogAttribute processor ekledik
+bucketta 2 adet dosya var jpeg ve xml
+ListS3 ayarlarını yapalım
+Bucket yazan yere muthu4all-nifi dedik okuyacağı bucketı verdik
+access key ve secret access key verdik
+Schedule için de 10sec diyoruz
+LogAttributeta LogPayload true diyoruz
+ayrıca bulletin level debug diyoruz
+
+AWS S3 add object - using AWS Controller service
+Şimdi canvasta configure diyelim
+controller servicea gidelim + ile AWSCredentialsProviderControllerService
+ekleyelim ve ayarlayalım
+Bunu ekleyince accesskey secretaccess key girmeye gerek kalmıyor
+bilgileri serviceten alıyor
+GetFiles ve PutS3 ekledik
+/opt/nifi/muthukumar_studies/inputfiles getfiles dedik
+PutS3 için de AWS Credentials Provider Service kısmında oluşturduğumuz
+servisi gösterdik bir de bucket muthu4all-nifi dedik
+Servisi konfigure ederken
+Access Key girilir Secret Key girilir
+
+MongoDB Nifi  NoSQL
+PG_15_NifiMongoDB ekledik
+https://mlab.com 
+burada sample mongodb oluşturulabilir
+oluşan MongoDB URI alırız
+mongodb://
+Getfile processor /opt/nifi/muthukumar_studies/inputfiles
+Sonra PutMongoRecord ekleriz
+Mongo URI yazarız 
+mongodb://nifimongouser:nifi123@ds131323.mlab.com:31323/nifimongo
+mongodb://nifimongouser:""@ds131323.mlab.com:31323/nifimongo
+
+kaydederken sildim
+
+mongo databasename nifimongo deriz
+mongo collection name nificollection deriz
+REcord REader ekleriz onu da CSVREader seçeriz
+CSVReader ayarlarına bakalım
+Schema Access Strategy Use String Fields From Header
+mockaroo.comdan data oluşturmuş 
+bizdeki MOCK_DATA.csv kullanılabilir
+GetFiledaki Keep Source File falsetan trueya çeviririz
+Artık çalıştırabiliriz  UpdateAttribute eklemiş ama bahsetmedi
+
+Apache Solr search engine kısmı
+https://solr.apache.org/downloads.html
+https://www.apache.org/dyn/closer.lua/solr/solr/9.0.0/solr-9.0.0-src.tgz?action=download
+indirilebilir
+bin altında solr servisleri başlatılır
+.\bin\solr start 
+localhost:8983/solr altında çalışır
+soldaki menüden yeni core eklenebilir
+powershellden core eklemek istersek
+.\bin\solr create -c nificore deriz
+solr altında server klasörü solr altında oluşturulan corelar
+görülebilir mycore, nificore tweets var
+tüm configuration dosyaları bunun altında yer alır
+nificore altına gelip conf dersek görebiliriz
+8983 portlu adreste query deyip select * atabiliriz
+Şimdi nifide GenerateFlowFile ekleyelim 10sec
+propertiesde de custom text ekleyelim
+{"id":"${UUID()}"
+"Message":"Generated this message on ${now()}"
+}
+sonra PutSolrContentStream ekleyelim
+ayarlarını yapalım
+Solr Location http://localhost:8983/solr/nificore
+sona da LogAttribute ekleyelim
+artık çalıştırırsak solrda textin geldiğini ve sonuna
+now ekini eklediğini görürüz
+
+Custom Processor Kısmı
+maven kullanıyor
+mvn -v
+eclipse kullanıyor
+mkdir MyCustomProcessor
+mvn archetype:generate diyoruz powershellde
+filter sorunca nifi diyoruz 2 tane proje çıkıyor
+1 deriz processor için
+şimdi versiyon seçeriz nifi için 1.9.0 dedik
+groupId istiyor com.muthu4all.nifi dedik
+artifactID için mysumnum-processor dedik
+versiyon snapshot için 1.9.0 dedik
+artifactbasename için sumtwoint dedik
+package adını default bıraktık
+şimdi bir klasör oluşturdu
+cd .\mysumnum-processor\ dedik
+ls deyince nifi-sumtwoint-nar , processor ve pom.xml oluştu
+şimdi bunu eclipse projesi haline getirelim sumnum içindeyken
+powershellde mvn eclipse:eclipse -DdownloadSources=true  çalıştırırız
+şimdi oluştuktan sonra nar değil de processor olan klasörü tanıtıyoruz eclipse
+src/main/java altındaki com.muthu4all.nifi.processor.sumtwoint altındaki
+MyProcessor.java dosyasına bakalım
+AbstractProcessor içine number_1 number_2 methodlarını ekleriz
+bunların altlarına REL_SUCCESS ekleriz
+init method altına da add methodlarımızı ekleriz
+son olarak da trigger methodunu güncelleriz
+bitince mvn clean install deriz
+artık nar file oluştu bu dosyayı nifi lib altına atarız
+Nifida denediğimiz zaman 2 adet int alır biz de 20 ve 30 verdik
+toplamlarını 50 olarak verdi
+
+Custom Controller
+mvn archetype:generate diyoruz powershellde
+filter sorunca nifi diyoruz 2 tane proje çıkıyor
+2 deriz processor için
+şimdi versiyon seçeriz nifi için 1.8.0 dedik
+groupId istiyor com.muthu4all.nifi dedik
+artifactID için custctrl dedik
+versiyon snapshot için 1.8 dedik
+artifactbasename için mycustctrl dedik
+package adını default bıraktık
+powershellde mvn eclipse:eclipse -DdownloadSources=true  çalıştırırız
+mvn clean install deriz
+yine src altındaki mycustctrl altındaki standardmyservice.java dosyasına gideriz
+bu oluşan nar fileları lib altına atarız
+api ve normal olan nar fileları lib altına attık
+Nifia gelip Controller Serviceten kendi controller servisimizi görebildik
+
+yeni mvn projesinde de custom processor için custom controller oluşturuldu
+
+Use Caseler
+fordgobiketan data alıp HDFSe CSV olarak atmak
+http://hamilton.socialbicycles.com/opendata/station_status.json
+InvokeHTTP ekledik bu linki verdik ve 10sec schedule verdik
+Primary nodeda çalıştırıyoruz response ile ekleriz updatei
+UpdateAttribute ekleyip Property içine MergeID ekleriz value olarak $uuid deriz
+sonra splitjson processor ekleriz property olarak 
+jsonpath expression için $.data.stations deriz
+
+bu json dosyanın içini https://jsonpath.herokuapp.com/ içine yapıştırabiliriz
+alta da $.data.stations Go dersek böylece tüm elementleri görebiliriz
+$.last_updated 
+Sonra evaluate jsonpath ekleriz split ekleriz
+destionation için flowfile-attribute deriz
+Property olarak 2 özellik ekleriz
+num_bikes_available $.num_bikes_available
+station_id $.station_id
+sonra replacetext processor ekleriz
+Replacement Value "${station_id}","${num_bikes_available}"
+evaluation mode da entire texttir
+sonra MergeContent ekleriz success ile ekleriz
+Correlation Attribute Name için MergeID deriz
+Delimiter Strategy text olarak değiştiriyoruz
+Header "station_id","vehicles_available"
+Demarcator ekledik shift enter ile enter oluşturduk 
+bir de Tar Modified Time eklemiş ama bahsetmemiş
+${file.lastModifiedTime} ekli
+Arkasından Funnel ekleriz Mergeü bağlarız
+Funneldan sonra Update Attribute ve LogAttribute eklidir
+LogAttributetea LogPayload true olarak seçilir
+UpdateAttribute içinde filename property ekleriz
+${filename:append('.csv')} olarak value deriz
+sonrasında PutHDFS ekleriz
+Hadoop Configuration Resources içine 
+/etc/hadoop/conf.cloudera.hdfs/core-site.xml, /etc/hadoop/conf.cloudera.hdfs/hdfs-site.xml
+Directory olarak hdfs://node1:8020/user/root/mergedcontent
+Artık çalıştırabiliriz
+
+Use Case2 Extract and Visualize Twitter data
+Twitterdan account alınır
+Consumer API Keys, API secret key
+Access Token ve access token secret alınır
+Önce GetTwitter processor eklenir
+Twitter endpoint olarak Filter endpoint seçtik
+sonra consumer key, consumer secret, access-token ve access token secret girilir
+Terms to Filter on kısmına ipl, cricket gireriz
+sonra EvaluateJsonPath eklenir gettwitter buna eklenir
+propertiese bakarsak destination yine flowfile-attribute olarak değiştirilir
+2 tane property eklenir
+twitter.lang $.lang
+twitter.text $.text
+evaluateti matched ile Route On attributee eklenir
+Yeni bir property eklenir
+tweet ${twitter.text:isEmpty():not():and(${twitter.lang:equals("en")})}
+sonra MergeContent processor ekleriz ve tweet ile bağlarız
+Minimum Number of entries 20 deriz
+delimiter strategy text olara seçilir
+header [, footer ] ve demarcator , olarak verilir
+Ardından PutSolrContentStream ekleriz merge olanı ekleriz
+Solr Location olarak http://localhost:8983/solr/tweets deriz
+collection olarak tweets verdik
+commit within 5000den 1000 dedik
+solr solr-8.0.0 pathine geleim powershellden şu kodu çalıştıralım
+java -Dc=tweets -Dtype=application/xml -jar example/exampledocs/post.jar .\delete-all.xml
+tweet collection altındaki tüm datayı sildik
+https://github.com/lucidworks/banana  bana dashboard ile görselleştirelim
+solr / solr-8.0.0 /server / solr-webapp /webapp altına banana klasörünü kopyaladık
+içinde github sayfasındaki tüm bilgiler var
+http://localhost:8983/solr/banana/src/index.html 
+bu sayfadan dashboard oluşturabiliriz
+PutSolrContentStreamde oluşturulan propertyler şunlar
+f.1  id:/id
+f.10 coorddinates_s:/coordinates
+f.11 places_s:/place
+f.2  text_t:/text
+f.3  screenName_s:/screen_name
+f.4  language_s:/lang
+f.5  twitter_created_at_dt:/created_at
+f.6  tag_ss:/entities/hashtags
+f.7  originalposter_s:/retweeted_status/user/screen_name
+f.8  source_s:/source
+f.9  geo_s:/geo
+split /
+
+Banana ile görselleştirme yapıldı
+solrconfig.xml dosyasında uygun tarih formatı ekli değilse yani 
+gelen datanın tarih formatı yoksa tarihi düzgün vermez
+bu config dosyası da solr/solr8/server/solr/tweets/conf altında yer alır
+
+
+
+

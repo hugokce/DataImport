@@ -6,6 +6,9 @@ https://localhost:8443/nifi/login sayfasını açalım kullancı adı ve şifre 
 minimum 12 haneli şifre tanımlanır sonrasında servisler restart edilir ve login gerçekleştirilir
  ./nifi.sh set-single-user-credentials "admin" "12HaneliSifre"
  
+
+Şifre tanımlanmak istenirse
+./bin/nifi.sh set-single-user-credentials <username> <password> şeklinde ayarlanır
  
  
 Kaynaklar
@@ -14,3 +17,5 @@ https://hub.docker.com/r/apache/nifi/
 https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html
 https://nifi.apache.org/docs/nifi-docs/html/developer-guide.html#flowfile
 https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html
+https://nifi.apache.org/quickstart.html
+
